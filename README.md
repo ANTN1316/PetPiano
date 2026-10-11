@@ -1,7 +1,7 @@
 # 🎹 PetPiano — Sistema de Organização e Contagem de Mercadorias
 
 <p align="center">
-  <img src="./petpiano_logo.jpg" alt="PetPiano Banner Logo" width="360" style="border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+
 </p>
 
 <p align="center">
