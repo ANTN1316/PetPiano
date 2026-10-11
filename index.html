@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PetPiano - Sistema Inteligente de Contagem de Mercadorias, Controle de Loja e Estoque com Ciclo de 2 Dias, Alertas de Ruptura e Previsão de Entregas.">
+  <meta name="theme-color" content="#0f172a">
+  <title>PetPiano | Contagem e Gestão de Mercadorias</title>
+  
+  <!-- Fontes do Google -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div id="app" class="app-layout">
+    
+    <!-- Topbar & Identidade -->
+    <header class="topbar">
+      <div class="topbar-brand">
+        <div class="brand-logo" aria-hidden="true">
+          <img src="./petpiano_logo.jpg" alt="PetPiano Logo" class="brand-logo-img">
+        </div>
+        <div class="brand-info">
+          <h1 class="brand-name">PetPiano</h1>
+          <span class="brand-tagline">Contagem & Estoque Inteligente</span>
+        </div>
+      </div>
+
+      <!-- Barra de Ciclo 2 Dias (Destaque Principal) -->
+      <div class="cycle-banner" id="cycleBanner">
+        <div class="cycle-pulse" aria-hidden="true"></div>
+        <div class="cycle-details">
+          <div class="cycle-header">
+            <span class="cycle-title">Ciclo de Contagem (48h)</span>
+            <span class="cycle-badge" id="cycleStatusBadge">Em Andamento</span>
+          </div>
+          <div class="cycle-progress-wrap">
+            <div class="cycle-progress-bar">
+              <div class="cycle-progress-fill" id="cycleProgressBar" style="width: 0%;"></div>
+            </div>
+            <span class="cycle-count-text" id="cycleProgressText">0 / 0 itens (0%)</span>
+          </div>
+        </div>
+        <div class="cycle-actions">
+          <button id="btnNewCycle" class="btn btn-sm btn-outline" title="Iniciar um novo ciclo de 48 horas">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            Novo Ciclo
+          </button>
+        </div>
+      </div>
+
+      <!-- Ações do Topbar -->
+      <div class="topbar-actions">
+        <!-- Toggle Som de Piano -->
+        <button id="btnSoundToggle" class="btn-icon" title="Efeitos Sonoros de Piano (Ativado)" aria-label="Alternar som">
+          <span class="icon-sound">🔊</span>
+        </button>
+
+        <!-- Notificações Navegador -->
+        <button id="btnNotificationsPermission" class="btn-icon" title="Ativar Notificações no Navegador" aria-label="Permissão de Notificação">
+          <span class="icon-bell">🔔</span>
+          <span class="badge-dot" id="notifDot" style="display: none;"></span>
+        </button>
+
+        <!-- Botão Novo Produto -->
+        <button id="btnOpenNewProduct" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <span>Novo Item</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Barra de Navegação por Abas -->
+    <nav class="main-nav" aria-label="Navegação Principal">
+      <div class="nav-container">
+        <button class="nav-tab active" data-tab="tab-count" id="navTabCount">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <span>Contagem Rápida (2 Dias)</span>
+          <span class="tab-pill" id="tabPillCount">0</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-stock" id="navTabStock">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          <span>Loja & Estoque</span>
+          <span class="tab-pill" id="tabPillStock">0</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-alerts" id="tabAlerts">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>Alertas de Ruptura</span>
+          <span class="tab-pill tab-pill-warning" id="tabPillAlerts">0</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-deliveries" id="tabDeliveries">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+          <span>Previsão de Entregas</span>
+          <span class="tab-pill tab-pill-info" id="tabPillDeliveries">0</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-reports" id="tabReports">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span>Histórico & Relatórios</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Painel de Métricas Resumo -->
+    <section class="summary-cards" aria-label="Painel de Resumo">
+      <div class="card stat-card">
+        <div class="stat-icon stat-icon-cyan">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-2z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        </div>
+        <div class="stat-data">
+          <span class="stat-label">Itens na Loja</span>
+          <span class="stat-value" id="statLojaCount">0</span>
+          <span class="stat-sub">Frente de gôndola</span>
+        </div>
+      </div>
+
+      <div class="card stat-card">
+        <div class="stat-icon stat-icon-blue">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        </div>
+        <div class="stat-data">
+          <span class="stat-label">Itens no Estoque</span>
+          <span class="stat-value" id="statEstoqueCount">0</span>
+          <span class="stat-sub">Depósito e almoxarifado</span>
+        </div>
+      </div>
+
+      <div class="card stat-card">
+        <div class="stat-icon stat-icon-emerald">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+        </div>
+        <div class="stat-data">
+          <span class="stat-label">Conferidos Hoje (48h)</span>
+          <span class="stat-value" id="statConferidosCount">0%</span>
+          <span class="stat-sub" id="statConferidosSub">0 pendentes de contagem</span>
+        </div>
+      </div>
+
+      <div class="card stat-card">
+        <div class="stat-icon stat-icon-amber">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+        </div>
+        <div class="stat-data">
+          <span class="stat-label">Alertas de Ruptura</span>
+          <span class="stat-value stat-val-danger" id="statAlertasCount">0</span>
+          <span class="stat-sub" id="statAlertasSub">Abaixo do estoque mínimo</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Conteúdo Principal Dinâmico -->
+    <main class="main-content">
+
+      <!-- ============================================== -->
+      <!-- ABA 1: CONTAGEM RÁPIDA (MODO CICLO 2 DIAS)     -->
+      <!-- ============================================== -->
+      <section class="tab-content active" id="tab-count" aria-labelledby="navTabCount">
+        <div class="section-toolbar">
+          <div class="toolbar-title-group">
+            <h2 class="section-title">Modo Contagem Express (Ciclo 2 Dias)</h2>
+            <p class="section-subtitle">
+              Percorra a loja e o estoque atualizando as quantidades com um toque. Divergências e itens conferidos são destacados em tempo real.
+            </p>
+          </div>
+          
+          <div class="toolbar-controls">
+            <!-- Barra de Busca -->
+            <div class="search-input-wrapper">
+              <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="search" id="countSearchInput" class="input-search" placeholder="Buscar por nome, marca ou código de barras...">
+            </div>
+
+            <!-- Filtros Rápidos -->
+            <div class="filter-pills" id="countFilterGroup">
+              <button class="pill-btn active" data-filter="all">Todos (<span id="filterAllCount">0</span>)</button>
+              <button class="pill-btn" data-filter="pending">Pendentes (<span id="filterPendingCount">0</span>)</button>
+              <button class="pill-btn" data-filter="checked">Conferidos (<span id="filterCheckedCount">0</span>)</button>
+              <button class="pill-btn pill-btn-warning" data-filter="divergent">Divergências (<span id="filterDivergentCount">0</span>)</button>
+              <button class="pill-btn pill-btn-danger" data-filter="critical">Estoque Crítico (<span id="filterCriticalCount">0</span>)</button>
+            </div>
+            
+            <!-- Categoria Dropdown -->
+            <select id="countCategorySelect" class="select-control">
+              <option value="">Todas as Categorias</option>
+              <option value="Rações & Alimentos">Rações & Alimentos</option>
+              <option value="Petiscos & Bifinhos">Petiscos & Bifinhos</option>
+              <option value="Farmácia & Medicamentos">Farmácia & Medicamentos</option>
+              <option value="Higiene & Areia">Higiene & Areia</option>
+              <option value="Brinquedos">Brinquedos</option>
+              <option value="Acessórios & Coleiras">Acessórios & Coleiras</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Banner com Dica Rápida para o Operador -->
+        <div class="quick-guide-bar">
+          <div class="guide-item">
+            <span class="guide-badge">Dica 1</span>
+            <span>Use os botões <strong>+1, +5</strong> para contar rapidamente sem precisar apagar números.</span>
+          </div>
+          <div class="guide-item">
+            <span class="guide-badge">Dica 2</span>
+            <span>Clique em <strong>"Conferido"</strong> para salvar o carimbo de data deste ciclo.</span>
+          </div>
+          <div class="guide-item">
+            <span class="guide-badge">Ciclo</span>
+            <span id="cycleTimerNote">Ciclo atual expira em 38 horas.</span>
+          </div>
+        </div>
+
+        <!-- Grid de Cards de Contagem -->
+        <div class="count-cards-grid" id="countCardsContainer">
+          <!-- Renderizado via JavaScript -->
+        </div>
+
+        <!-- Feedback de busca vazia -->
+        <div class="empty-state" id="countEmptyState" style="display: none;">
+          <div class="empty-icon">🔍</div>
+          <h3 class="empty-title">Nenhum item encontrado</h3>
+          <p class="empty-desc">Tente ajustar o termo de busca ou remover os filtros selecionados.</p>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- ABA 2: LOJA & ESTOQUE (TABELA DE PRODUTOS)     -->
+      <!-- ============================================== -->
+      <section class="tab-content" id="tab-stock" aria-labelledby="navTabStock">
+        <div class="section-toolbar">
+          <div class="toolbar-title-group">
+            <h2 class="section-title">Gerenciamento Geral de Mercadorias</h2>
+            <p class="section-subtitle">
+              Visualize detalhadamente as quantidades na Loja e no Depósito, transfira mercadorias e regule os estoques mínimos de alerta.
+            </p>
+          </div>
+
+          <div class="toolbar-controls">
+            <div class="search-input-wrapper">
+              <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="search" id="stockSearchInput" class="input-search" placeholder="Filtrar por nome, SKU ou fornecedor...">
+            </div>
+
+            <select id="stockCategorySelect" class="select-control">
+              <option value="">Todas as Categorias</option>
+              <option value="Rações & Alimentos">Rações & Alimentos</option>
+              <option value="Petiscos & Bifinhos">Petiscos & Bifinhos</option>
+              <option value="Farmácia & Medicamentos">Farmácia & Medicamentos</option>
+              <option value="Higiene & Areia">Higiene & Areia</option>
+              <option value="Brinquedos">Brinquedos</option>
+              <option value="Acessórios & Coleiras">Acessórios & Coleiras</option>
+            </select>
+
+            <select id="stockStatusFilter" class="select-control">
+              <option value="">Todos os Status</option>
+              <option value="normal">Estoque Normal</option>
+              <option value="low">Ponto de Alerta (Baixo)</option>
+              <option value="critical">Estoque Crítico (Acabando)</option>
+              <option value="transfer">Precisa Transferir p/ Loja</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tabela Responsiva de Mercadorias -->
+        <div class="table-container card">
+          <table class="inventory-table" id="inventoryTable">
+            <thead>
+              <tr>
+                <th>Produto & Detalhes</th>
+                <th>Categoria</th>
+                <th class="th-center">Na Loja</th>
+                <th class="th-center">No Estoque</th>
+                <th class="th-center">Total</th>
+                <th class="th-center">Est. Mínimo</th>
+                <th>Status</th>
+                <th>Previsão Entrega</th>
+                <th class="th-actions">Ações Rápidas</th>
+              </tr>
+            </thead>
+            <tbody id="inventoryTableBody">
+              <!-- Renderizado via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- ABA 3: ALERTAS DE RUPTURA & NOTIFICAÇÕES       -->
+      <!-- ============================================== -->
+      <section class="tab-content" id="tab-alerts" aria-labelledby="tabAlerts">
+        <div class="section-toolbar">
+          <div class="toolbar-title-group">
+            <h2 class="section-title">Central de Alertas & Ruptura de Estoque</h2>
+            <p class="section-subtitle">
+              Itens que estão prestes a acabar ou com estoque abaixo do limite configurado. Configure a quantidade mínima e gere ordens de reposição.
+            </p>
+          </div>
+          <button id="btnRefreshAlerts" class="btn btn-outline">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Atualizar Alertas
+          </button>
+        </div>
+
+        <div class="alerts-summary-banner" id="alertsBanner">
+          <div class="alert-banner-icon">⚠️</div>
+          <div class="alert-banner-text">
+            <h3 id="alertsBannerTitle">0 itens necessitam de atenção imediata</h3>
+            <p id="alertsBannerDesc">Produtos com saldo total próximo ou inferior ao estoque mínimo configurado para o PetPiano.</p>
+          </div>
+        </div>
+
+        <div class="alerts-grid" id="alertsContainer">
+          <!-- Renderizado via JS -->
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- ABA 4: PREVISÃO DE ENTREGAS & FORNECEDORES     -->
+      <!-- ============================================== -->
+      <section class="tab-content" id="tab-deliveries" aria-labelledby="tabDeliveries">
+        <div class="section-toolbar">
+          <div class="toolbar-title-group">
+            <h2 class="section-title">Previsão de Entregas & Chegadas</h2>
+            <p class="section-subtitle">
+              Acompanhe pedidos de reposição em trânsito, datas estimadas de chegada dos fornecedores e dê entrada direta no estoque quando a mercadoria chegar.
+            </p>
+          </div>
+          <button id="btnOpenNewDeliveryModal" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Nova Previsão de Entrega
+          </button>
+        </div>
+
+        <div class="deliveries-layout">
+          <!-- Lista de Entregas / Pedidos -->
+          <div class="deliveries-list" id="deliveriesContainer">
+            <!-- Renderizado via JS -->
+          </div>
+
+          <!-- Dicas & Resumo de Fornecedores -->
+          <aside class="deliveries-sidebar card">
+            <h3 class="sidebar-title">Fornecedores Frequentes</h3>
+            <ul class="supplier-list" id="suppliersSummaryList">
+              <!-- Renderizado via JS -->
+            </ul>
+            <hr class="divider">
+            <div class="delivery-tip">
+              <h4>📦 Como funciona a Entrada?</h4>
+              <p>Ao clicar em <strong>"Confirmar Recebimento"</strong>, a quantidade entregue é automaticamente somada ao Estoque (Depósito) do item correspondente.</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- ABA 5: HISTÓRICO & RELATÓRIOS DO CICLO         -->
+      <!-- ============================================== -->
+      <section class="tab-content" id="tab-reports" aria-labelledby="tabReports">
+        <div class="section-toolbar">
+          <div class="toolbar-title-group">
+            <h2 class="section-title">Histórico de Contagens & Relatórios</h2>
+            <p class="section-subtitle">
+              Auditoria dos ciclos de 48 horas concluídos, divergências apontadas e exportação de dados para controle gerencial.
+            </p>
+          </div>
+          
+          <div class="toolbar-controls">
+            <button id="btnExportCSV" class="btn btn-outline">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Exportar CSV
+            </button>
+            <button id="btnPrintReport" class="btn btn-outline">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              Imprimir Folha de Contagem
+            </button>
+            <button id="btnResetDemoData" class="btn btn-ghost text-muted" title="Restaura os dados demonstrativos do PetPiano">
+              Restaurar Dados Demo
+            </button>
+          </div>
+        </div>
+
+        <div class="reports-grid">
+          <!-- Card de Auditoria do Ciclo Vigente -->
+          <div class="card report-card">
+            <h3 class="card-title">Resumo do Ciclo de 2 Dias Atual</h3>
+            <div class="cycle-audit-metrics">
+              <div class="audit-item">
+                <span class="audit-label">Início do Ciclo:</span>
+                <span class="audit-value" id="auditCycleStart">--</span>
+              </div>
+              <div class="audit-item">
+                <span class="audit-label">Prazo de Encerramento:</span>
+                <span class="audit-value" id="auditCycleEnd">--</span>
+              </div>
+              <div class="audit-item">
+                <span class="audit-label">Itens Conferidos:</span>
+                <span class="audit-value" id="auditCheckedItems">0 / 0</span>
+              </div>
+              <div class="audit-item">
+                <span class="audit-label">Divergências Detectadas:</span>
+                <span class="audit-value audit-val-alert" id="auditDivergentCount">0 itens</span>
+              </div>
+              <div class="audit-item">
+                <span class="audit-label">Acurácia Atual:</span>
+                <span class="audit-value audit-val-success" id="auditAccuracyRate">100%</span>
+              </div>
+            </div>
+            
+            <button id="btnCompleteCycleModal" class="btn btn-primary full-width" style="margin-top: 1.5rem;">
+              Concluir Ciclo & Registrar Histórico
+            </button>
+          </div>
+
+          <!-- Tabela de Histórico de Ciclos Anteriores -->
+          <div class="card report-card">
+            <h3 class="card-title">Ciclos Anteriores Concluídos</h3>
+            <div class="history-table-wrapper">
+              <table class="simple-table" id="historyTable">
+                <thead>
+                  <tr>
+                    <th>Data de Conclusão</th>
+                    <th>Itens Conferidos</th>
+                    <th>Divergências</th>
+                    <th>Acurácia</th>
+                  </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                  <!-- Renderizado via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: REGULAR QUANTIDADE (LOJA & ESTOQUE)     -->
+  <!-- ============================================== -->
+  <dialog id="modalAdjustQuantity" class="app-dialog">
+    <div class="dialog-header">
+      <div class="dialog-title-group">
+        <h3 class="dialog-title" id="adjustModalTitle">Regular Quantidade</h3>
+        <p class="dialog-subtitle" id="adjustModalSubtitle">Ajuste fino de saldo para loja e depósito</p>
+      </div>
+      <button class="dialog-close-btn" data-close-dialog="modalAdjustQuantity" aria-label="Fechar">✕</button>
+    </div>
+
+    <form id="formAdjustQuantity" class="dialog-body">
+      <input type="hidden" id="adjustProductId">
+
+      <div class="adjust-sections-grid">
+        <!-- Seção Loja -->
+        <div class="adjust-box card">
+          <div class="adjust-box-header">
+            <span class="adjust-box-tag tag-loja">Frente de Loja</span>
+            <span class="adjust-current-label">Atual: <strong id="adjustCurrentLoja">0</strong></span>
+          </div>
+          <div class="adjust-input-stepper">
+            <button type="button" class="btn-step" data-step-target="adjustInputLoja" data-step="-5">-5</button>
+            <button type="button" class="btn-step" data-step-target="adjustInputLoja" data-step="-1">-1</button>
+            <input type="number" id="adjustInputLoja" class="input-stepper" min="0" required>
+            <button type="button" class="btn-step" data-step-target="adjustInputLoja" data-step="1">+1</button>
+            <button type="button" class="btn-step" data-step-target="adjustInputLoja" data-step="5">+5</button>
+          </div>
+        </div>
+
+        <!-- Seção Estoque -->
+        <div class="adjust-box card">
+          <div class="adjust-box-header">
+            <span class="adjust-box-tag tag-estoque">Depósito / Estoque</span>
+            <span class="adjust-current-label">Atual: <strong id="adjustCurrentEstoque">0</strong></span>
+          </div>
+          <div class="adjust-input-stepper">
+            <button type="button" class="btn-step" data-step-target="adjustInputEstoque" data-step="-5">-5</button>
+            <button type="button" class="btn-step" data-step-target="adjustInputEstoque" data-step="-1">-1</button>
+            <input type="number" id="adjustInputEstoque" class="input-stepper" min="0" required>
+            <button type="button" class="btn-step" data-step-target="adjustInputEstoque" data-step="1">+1</button>
+            <button type="button" class="btn-step" data-step-target="adjustInputEstoque" data-step="5">+5</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Configuração de Estoque Mínimo e Notificação -->
+      <div class="form-group">
+        <label for="adjustMinStock" class="form-label">
+          Estoque Mínimo para Alerta de Notificação
+          <span class="label-hint">(Você será avisado quando o total de Loja + Estoque for igual ou menor a este valor)</span>
+        </label>
+        <div class="input-group">
+          <input type="number" id="adjustMinStock" class="input-control" min="1" required>
+          <span class="input-addon">unidades</span>
+        </div>
+      </div>
+
+      <!-- Motivo do Ajuste -->
+      <div class="form-group">
+        <label for="adjustReason" class="form-label">Motivo da Regularização (Opcional)</label>
+        <select id="adjustReason" class="select-control">
+          <option value="Contagem física de rotina">Contagem física de rotina (Ciclo 2 dias)</option>
+          <option value="Ajuste de inventário">Ajuste de inventário</option>
+          <option value="Quebra ou avaria de embalagem">Quebra ou avaria de embalagem</option>
+          <option value="Validade vencida">Validade vencida</option>
+          <option value="Consumo interno ou demonstração">Consumo interno ou demonstração</option>
+        </select>
+      </div>
+
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-outline" data-close-dialog="modalAdjustQuantity">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar Regularização</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ============================================== -->
+  <!-- MODAL: TRANSFERÊNCIA RÁPIDA (ESTOQUE -> LOJA)  -->
+  <!-- ============================================== -->
+  <dialog id="modalTransferStock" class="app-dialog">
+    <div class="dialog-header">
+      <div class="dialog-title-group">
+        <h3 class="dialog-title" id="transferModalTitle">Transferir Mercadoria</h3>
+        <p class="dialog-subtitle" id="transferModalSubtitle">Mover produtos do depósito para reposição na loja</p>
+      </div>
+      <button class="dialog-close-btn" data-close-dialog="modalTransferStock" aria-label="Fechar">✕</button>
+    </div>
+
+    <form id="formTransferStock" class="dialog-body">
+      <input type="hidden" id="transferProductId">
+
+      <div class="transfer-flow">
+        <div class="transfer-point">
+          <span class="point-label">Origem</span>
+          <strong class="point-name">Depósito (Estoque)</strong>
+          <span class="point-qty" id="transferEstoqueAvailable">0 un disponíveis</span>
+        </div>
+        <div class="transfer-arrow">➡️</div>
+        <div class="transfer-point">
+          <span class="point-label">Destino</span>
+          <strong class="point-name">Frente de Loja</strong>
+          <span class="point-qty" id="transferLojaCurrent">0 un atualmente</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="transferQuantityInput" class="form-label">Quantidade a Transferir para a Loja</label>
+        <input type="number" id="transferQuantityInput" class="input-control input-lg" min="1" required>
+        <span class="input-hint" id="transferMaxHint">Máximo disponível: 0</span>
+      </div>
+
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-outline" data-close-dialog="modalTransferStock">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Confirmar Transferência</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ============================================== -->
+  <!-- MODAL: NOVO PRODUTO / EDITAR PRODUTO           -->
+  <!-- ============================================== -->
+  <dialog id="modalProduct" class="app-dialog modal-wide">
+    <div class="dialog-header">
+      <div class="dialog-title-group">
+        <h3 class="dialog-title" id="productModalTitle">Cadastrar Novo Item</h3>
+        <p class="dialog-subtitle">Adicione um novo produto ao catálogo do PetPiano</p>
+      </div>
+      <button class="dialog-close-btn" data-close-dialog="modalProduct" aria-label="Fechar">✕</button>
+    </div>
+
+    <form id="formProduct" class="dialog-body">
+      <input type="hidden" id="prodEditId">
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label for="prodName" class="form-label">Nome do Produto *</label>
+          <input type="text" id="prodName" class="input-control" placeholder="Ex: Ração Premier Raças Pequenas 2,5kg" required>
+        </div>
+
+        <div class="form-group">
+          <label for="prodCategory" class="form-label">Categoria *</label>
+          <select id="prodCategory" class="select-control" required>
+            <option value="Rações & Alimentos">Rações & Alimentos</option>
+            <option value="Petiscos & Bifinhos">Petiscos & Bifinhos</option>
+            <option value="Farmácia & Medicamentos">Farmácia & Medicamentos</option>
+            <option value="Higiene & Areia">Higiene & Areia</option>
+            <option value="Brinquedos">Brinquedos</option>
+            <option value="Acessórios & Coleiras">Acessórios & Coleiras</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-grid-3">
+        <div class="form-group">
+          <label for="prodSku" class="form-label">Código / Código de Barras</label>
+          <input type="text" id="prodSku" class="input-control" placeholder="Ex: 7891234567890">
+        </div>
+
+        <div class="form-group">
+          <label for="prodBrand" class="form-label">Marca / Fabricante</label>
+          <input type="text" id="prodBrand" class="input-control" placeholder="Ex: Premier Pet, Royal Canin, etc.">
+        </div>
+
+        <div class="form-group">
+          <label for="prodSupplier" class="form-label">Fornecedor Principal</label>
+          <input type="text" id="prodSupplier" class="input-control" placeholder="Ex: Distribuidora Pet Brasil">
+        </div>
+      </div>
+
+      <div class="form-grid-3 highlight-box">
+        <div class="form-group">
+          <label for="prodQtyLoja" class="form-label">Quantidade na Loja (Gôndola)</label>
+          <input type="number" id="prodQtyLoja" class="input-control" min="0" value="0" required>
+        </div>
+
+        <div class="form-group">
+          <label for="prodQtyEstoque" class="form-label">Quantidade no Depósito (Estoque)</label>
+          <input type="number" id="prodQtyEstoque" class="input-control" min="0" value="0" required>
+        </div>
+
+        <div class="form-group">
+          <label for="prodMinStock" class="form-label">
+            Estoque Mínimo (Alerta) *
+            <span class="label-hint">Dispara aviso quando total atingir este valor</span>
+          </label>
+          <input type="number" id="prodMinStock" class="input-control" min="1" value="5" required>
+        </div>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label for="prodDeliveryDays" class="form-label">Prazo Médio de Entrega do Fornecedor (Lead time)</label>
+          <div class="input-group">
+            <input type="number" id="prodDeliveryDays" class="input-control" min="1" value="3">
+            <span class="input-addon">dias</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="prodLocation" class="form-label">Localização / Corredor na Loja</label>
+          <input type="text" id="prodLocation" class="input-control" placeholder="Ex: Corredor A, Prateleira 2">
+        </div>
+      </div>
+
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-outline" data-close-dialog="modalProduct">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar Produto</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ============================================== -->
+  <!-- MODAL: NOVA PREVISÃO DE ENTREGA                -->
+  <!-- ============================================== -->
+  <dialog id="modalNewDelivery" class="app-dialog">
+    <div class="dialog-header">
+      <div class="dialog-title-group">
+        <h3 class="dialog-title">Cadastrar Previsão de Entrega</h3>
+        <p class="dialog-subtitle">Registre um pedido de reposição feito ao fornecedor</p>
+      </div>
+      <button class="dialog-close-btn" data-close-dialog="modalNewDelivery" aria-label="Fechar">✕</button>
+    </div>
+
+    <form id="formNewDelivery" class="dialog-body">
+      <div class="form-group">
+        <label for="delivProductId" class="form-label">Mercadoria / Item *</label>
+        <select id="delivProductId" class="select-control" required>
+          <!-- Preenchido via JS -->
+        </select>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label for="delivSupplier" class="form-label">Fornecedor *</label>
+          <input type="text" id="delivSupplier" class="input-control" placeholder="Ex: Distribuidora Pet Brasil" required>
+        </div>
+
+        <div class="form-group">
+          <label for="delivQty" class="form-label">Quantidade Pedida *</label>
+          <input type="number" id="delivQty" class="input-control" min="1" value="10" required>
+        </div>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label for="delivExpectedDate" class="form-label">Data Prevista de Entrega *</label>
+          <input type="date" id="delivExpectedDate" class="input-control" required>
+        </div>
+
+        <div class="form-group">
+          <label for="delivOrderNum" class="form-label">Nº Pedido / NF (Opcional)</label>
+          <input type="text" id="delivOrderNum" class="input-control" placeholder="Ex: PED-2026-981">
+        </div>
+      </div>
+
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-outline" data-close-dialog="modalNewDelivery">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar Previsão</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ============================================== -->
+  <!-- MODAL: CONCLUIR CICLO DE 2 DIAS                -->
+  <!-- ============================================== -->
+  <dialog id="modalFinishCycle" class="app-dialog">
+    <div class="dialog-header">
+      <div class="dialog-title-group">
+        <h3 class="dialog-title">Concluir Ciclo de Contagem de 48h</h3>
+        <p class="dialog-subtitle">Fechar o inventário dos últimos 2 dias e iniciar nova rodada</p>
+      </div>
+      <button class="dialog-close-btn" data-close-dialog="modalFinishCycle" aria-label="Fechar">✕</button>
+    </div>
+
+    <div class="dialog-body">
+      <div class="finish-cycle-summary card">
+        <div class="summary-line">
+          <span>Total de itens no catálogo:</span>
+          <strong id="finishTotalSkus">0</strong>
+        </div>
+        <div class="summary-line">
+          <span>Itens conferidos fisicamente:</span>
+          <strong id="finishCheckedSkus" class="text-success">0</strong>
+        </div>
+        <div class="summary-line">
+          <span>Itens com divergência de saldo:</span>
+          <strong id="finishDivergentSkus" class="text-warning">0</strong>
+        </div>
+        <div class="summary-line">
+          <span>Taxa de Acurácia do Estoque:</span>
+          <strong id="finishAccuracyRate" class="text-primary">100%</strong>
+        </div>
+      </div>
+
+      <p class="finish-note">
+        Ao concluir, este ciclo será arquivado no histórico de auditoria. Todos os itens terão seu status de contagem resetado para <strong>"Pendente"</strong> para que a equipe realize a nova contagem nos próximos 2 dias.
+      </p>
+
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-outline" data-close-dialog="modalFinishCycle">Voltar</button>
+        <button type="button" id="btnConfirmFinishCycle" class="btn btn-primary">Confirmar e Abrir Novo Ciclo (48h)</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Script da Aplicação -->
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
