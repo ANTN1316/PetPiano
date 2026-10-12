@@ -1,19 +1,24 @@
 /**
- * PetPiano - Sistema de Organização, Contagem e Gestão de Mercadorias
- * Suporta ciclo de contagem de 48h (2 dias), Loja vs. Estoque, Alertas de Ruptura e Previsão de Entregas.
+ * PETPIANO — RETAIL STOCK ENGINE & GESTÃO OPERACIONAL
+ * Arquitetura de Gestão de Estoque, Ciclo de 48h, Movimentações Físicas e Preparação para E-Commerce.
  */
 
 // ============================================================================
-// CONSTANTES & DADOS DEMONSTRATIVOS INICIAIS
+// CHAVES DE ARMAZENAMENTO (LOCAL STORAGE)
 // ============================================================================
 
 const STORAGE_KEYS = {
-  PRODUCTS: 'petpiano_products_v1',
-  DELIVERIES: 'petpiano_deliveries_v1',
-  CYCLE: 'petpiano_cycle_v1',
-  CYCLE_HISTORY: 'petpiano_cycle_history_v1',
-  SETTINGS: 'petpiano_settings_v1',
+  PRODUCTS: 'petpiano_products_v2',
+  DELIVERIES: 'petpiano_deliveries_v2',
+  CYCLE: 'petpiano_cycle_v2',
+  CYCLE_HISTORY: 'petpiano_cycle_history_v2',
+  MOVEMENTS: 'petpiano_movements_v2',
+  SETTINGS: 'petpiano_settings_v2',
 };
+
+// ============================================================================
+// DADOS DEMONSTRATIVOS INICIAIS (SEED REALISTA DE PET SHOP)
+// ============================================================================
 
 const INITIAL_PRODUCTS = [
   {
@@ -23,6 +28,8 @@ const INITIAL_PRODUCTS = [
     category: 'Rações & Alimentos',
     brand: 'Premier Pet',
     supplier: 'Distribuidora PetBrasil',
+    costPrice: 165.00,
+    salePrice: 249.90,
     qtyLoja: 4,
     qtyEstoque: 14,
     minStock: 8,
@@ -31,7 +38,8 @@ const INITIAL_PRODUCTS = [
     lastCountAt: new Date(Date.now() - 3600000 * 12).toISOString(),
     checkedInCycle: true,
     baselineTotal: 18,
-    divergenceReason: ''
+    divergenceReason: '',
+    statusEcom: 'active'
   },
   {
     id: 'prod-002',
@@ -40,6 +48,8 @@ const INITIAL_PRODUCTS = [
     category: 'Rações & Alimentos',
     brand: 'Royal Canin',
     supplier: 'Distribuidora Central Pet',
+    costPrice: 89.50,
+    salePrice: 139.90,
     qtyLoja: 3,
     qtyEstoque: 5,
     minStock: 6,
@@ -48,7 +58,8 @@ const INITIAL_PRODUCTS = [
     lastCountAt: new Date(Date.now() - 3600000 * 20).toISOString(),
     checkedInCycle: true,
     baselineTotal: 8,
-    divergenceReason: ''
+    divergenceReason: '',
+    statusEcom: 'active'
   },
   {
     id: 'prod-003',
@@ -57,6 +68,8 @@ const INITIAL_PRODUCTS = [
     category: 'Rações & Alimentos',
     brand: 'PremieRpet Golden',
     supplier: 'Distribuidora PetBrasil',
+    costPrice: 110.00,
+    salePrice: 174.90,
     qtyLoja: 2,
     qtyEstoque: 1,
     minStock: 5, // Abaixo do mínimo!
@@ -65,7 +78,8 @@ const INITIAL_PRODUCTS = [
     lastCountAt: new Date(Date.now() - 3600000 * 48).toISOString(),
     checkedInCycle: false,
     baselineTotal: 4,
-    divergenceReason: ''
+    divergenceReason: '',
+    statusEcom: 'active'
   },
   {
     id: 'prod-004',
@@ -74,6 +88,8 @@ const INITIAL_PRODUCTS = [
     category: 'Farmácia & Medicamentos',
     brand: 'MSD Saúde Animal',
     supplier: 'FarmaPet Distribuição',
+    costPrice: 178.00,
+    salePrice: 249.90,
     qtyLoja: 1,
     qtyEstoque: 1,
     minStock: 4, // Crítico!
@@ -82,7 +98,8 @@ const INITIAL_PRODUCTS = [
     lastCountAt: new Date(Date.now() - 3600000 * 18).toISOString(),
     checkedInCycle: false,
     baselineTotal: 2,
-    divergenceReason: ''
+    divergenceReason: '',
+    statusEcom: 'active'
   },
   {
     id: 'prod-005',
@@ -91,6 +108,8 @@ const INITIAL_PRODUCTS = [
     category: 'Farmácia & Medicamentos',
     brand: 'Boehringer Ingelheim',
     supplier: 'FarmaPet Distribuição',
+    costPrice: 85.00,
+    salePrice: 129.90,
     qtyLoja: 4,
     qtyEstoque: 8,
     minStock: 5,
@@ -99,7 +118,8 @@ const INITIAL_PRODUCTS = [
     lastCountAt: new Date(Date.now() - 3600000 * 6).toISOString(),
     checkedInCycle: true,
     baselineTotal: 12,
-    divergenceReason: ''
+    divergenceReason: '',
+    statusEcom: 'active'
   },
   {
     id: 'prod-006',
@@ -108,6 +128,8 @@ const INITIAL_PRODUCTS = [
     category: 'Higiene & Areia',
     brand: 'Kelco Pet Care',
     supplier: 'Distribuidora PetBrasil',
+    costPrice: 12.00,
+    salePrice: 21.90,
     qtyLoja: 3,
     qtyEstoque: 2,
     minStock: 10, // Crítico!
@@ -116,7 +138,8 @@ const INITIAL_PRODUCTS = [
     lastCountAt: new Date(Date.now() - 3600000 * 30).toISOString(),
     checkedInCycle: false,
     baselineTotal: 6,
-    divergenceReason: ''
+    divergenceReason: '',
+    statusEcom: 'active'
   },
   {
     id: 'prod-007',
@@ -125,6 +148,8 @@ const INITIAL_PRODUCTS = [
     category: 'Higiene & Areia',
     brand: 'Chalesco',
     supplier: 'Distribuidora Central Pet',
+    costPrice: 42.00,
+    salePrice: 69.90,
     qtyLoja: 6,
     qtyEstoque: 18,
     minStock: 8,
@@ -133,7 +158,8 @@ const INITIAL_PRODUCTS = [
     lastCountAt: new Date(Date.now() - 3600000 * 10).toISOString(),
     checkedInCycle: true,
     baselineTotal: 24,
-    divergenceReason: ''
+    divergenceReason: '',
+    statusEcom: 'active'
   },
   {
     id: 'prod-008',
@@ -142,6 +168,8 @@ const INITIAL_PRODUCTS = [
     category: 'Petiscos & Bifinhos',
     brand: 'Mars Petcare',
     supplier: 'Distribuidora Express Pet',
+    costPrice: 3.80,
+    salePrice: 6.90,
     qtyLoja: 12,
     qtyEstoque: 24,
     minStock: 10,
@@ -150,7 +178,8 @@ const INITIAL_PRODUCTS = [
     lastCountAt: new Date(Date.now() - 3600000 * 14).toISOString(),
     checkedInCycle: true,
     baselineTotal: 36,
-    divergenceReason: ''
+    divergenceReason: '',
+    statusEcom: 'active'
   },
   {
     id: 'prod-009',
@@ -159,15 +188,18 @@ const INITIAL_PRODUCTS = [
     category: 'Petiscos & Bifinhos',
     brand: 'Kelco Pet Care',
     supplier: 'Distribuidora PetBrasil',
-    qtyLoja: 5,
-    qtyEstoque: 0, // Alerta: estoque zerado, só tem na loja!
+    costPrice: 15.00,
+    salePrice: 26.90,
+    qtyLoja: 1, // Loja baixa, depósito zerado -> Ruptura!
+    qtyEstoque: 0,
     minStock: 6,
     leadTimeDays: 3,
     location: 'Corredor 3 - Prateleira B',
     lastCountAt: new Date(Date.now() - 3600000 * 5).toISOString(),
     checkedInCycle: false,
-    baselineTotal: 5,
-    divergenceReason: ''
+    baselineTotal: 1,
+    divergenceReason: '',
+    statusEcom: 'active'
   },
   {
     id: 'prod-010',
@@ -176,15 +208,18 @@ const INITIAL_PRODUCTS = [
     category: 'Brinquedos',
     brand: 'KONG Company',
     supplier: 'Importadora PetPlay',
-    qtyLoja: 2,
-    qtyEstoque: 4,
+    costPrice: 65.00,
+    salePrice: 119.90,
+    qtyLoja: 1,
+    qtyEstoque: 4, // Loja baixa, mas tem estoque no depósito! Sugestão de transferência
     minStock: 3,
     leadTimeDays: 5,
     location: 'Painel Acessórios C',
     lastCountAt: new Date(Date.now() - 3600000 * 22).toISOString(),
     checkedInCycle: true,
-    baselineTotal: 6,
-    divergenceReason: ''
+    baselineTotal: 5,
+    divergenceReason: '',
+    statusEcom: 'active'
   },
   {
     id: 'prod-011',
@@ -193,6 +228,8 @@ const INITIAL_PRODUCTS = [
     category: 'Acessórios & Coleiras',
     brand: 'Zee.Dog',
     supplier: 'Distribuidora Zee Lifestyle',
+    costPrice: 72.00,
+    salePrice: 129.00,
     qtyLoja: 3,
     qtyEstoque: 3,
     minStock: 4,
@@ -201,7 +238,8 @@ const INITIAL_PRODUCTS = [
     lastCountAt: new Date(Date.now() - 3600000 * 8).toISOString(),
     checkedInCycle: true,
     baselineTotal: 6,
-    divergenceReason: ''
+    divergenceReason: '',
+    statusEcom: 'active'
   },
   {
     id: 'prod-012',
@@ -210,6 +248,8 @@ const INITIAL_PRODUCTS = [
     category: 'Higiene & Areia',
     brand: 'Petbrilho',
     supplier: 'Distribuidora PetBrasil',
+    costPrice: 11.50,
+    salePrice: 22.90,
     qtyLoja: 4,
     qtyEstoque: 12,
     minStock: 6,
@@ -218,7 +258,8 @@ const INITIAL_PRODUCTS = [
     lastCountAt: new Date(Date.now() - 3600000 * 16).toISOString(),
     checkedInCycle: true,
     baselineTotal: 16,
-    divergenceReason: ''
+    divergenceReason: '',
+    statusEcom: 'active'
   }
 ];
 
@@ -228,8 +269,11 @@ const INITIAL_DELIVERIES = [
     productId: 'prod-004', // Bravecto
     supplier: 'FarmaPet Distribuição',
     orderNumber: 'PED-2026-948',
-    quantity: 10,
-    expectedDate: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0], // Daqui a 2 dias
+    orderedQuantity: 10,
+    receivedQuantity: 0,
+    difference: 0,
+    orderDate: new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0],
+    expectedDate: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0], // Em 2 dias
     status: 'in_transit',
     createdAt: new Date().toISOString()
   },
@@ -238,7 +282,10 @@ const INITIAL_DELIVERIES = [
     productId: 'prod-006', // Pipicat
     supplier: 'Distribuidora PetBrasil',
     orderNumber: 'PED-2026-952',
-    quantity: 25,
+    orderedQuantity: 25,
+    receivedQuantity: 0,
+    difference: 0,
+    orderDate: new Date(Date.now() - 86400000 * 3).toISOString().split('T')[0],
     expectedDate: new Date(Date.now() + 86400000 * 1).toISOString().split('T')[0], // Amanhã
     status: 'in_transit',
     createdAt: new Date().toISOString()
@@ -248,17 +295,68 @@ const INITIAL_DELIVERIES = [
     productId: 'prod-003', // Golden Gatos
     supplier: 'Distribuidora PetBrasil',
     orderNumber: 'PED-2026-955',
-    quantity: 8,
-    expectedDate: new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0], // Daqui a 3 dias
-    status: 'in_transit',
+    orderedQuantity: 8,
+    receivedQuantity: 0,
+    difference: 0,
+    orderDate: new Date(Date.now() - 86400000 * 4).toISOString().split('T')[0],
+    expectedDate: new Date(Date.now() - 86400000 * 1).toISOString().split('T')[0], // Atrasado há 1 dia!
+    status: 'delayed',
     createdAt: new Date().toISOString()
+  }
+];
+
+const INITIAL_MOVEMENTS = [
+  {
+    id: 'mov-001',
+    productId: 'prod-007',
+    productName: 'Tapete Higiênico Chalesco 30 unidades',
+    type: 'Transferência Interna',
+    quantity: 6,
+    origin: 'Depósito (Estoque)',
+    destination: 'Loja (Gôndola)',
+    prevOriginQty: 24,
+    newOriginQty: 18,
+    prevDestQty: 0,
+    newDestQty: 6,
+    notes: 'Reposição inicial de gôndola',
+    timestamp: new Date(Date.now() - 3600000 * 10).toISOString()
+  },
+  {
+    id: 'mov-002',
+    productId: 'prod-001',
+    productName: 'Ração Premier Formula Cães Adultos 15kg',
+    type: 'Entrada por Fornecedor',
+    quantity: 10,
+    origin: 'Fornecedor Distribuidora PetBrasil',
+    destination: 'Depósito (Estoque)',
+    prevOriginQty: 0,
+    newOriginQty: 0,
+    prevDestQty: 4,
+    newDestQty: 14,
+    notes: 'Recebimento NF-e 8812',
+    timestamp: new Date(Date.now() - 3600000 * 28).toISOString()
+  },
+  {
+    id: 'mov-003',
+    productId: 'prod-008',
+    productName: 'Petisco Dreamies Salmão para Gatos 40g',
+    type: 'Ajuste de Inventário',
+    quantity: 2,
+    origin: 'Loja (Gôndola)',
+    destination: 'Ajuste de Quebra',
+    prevOriginQty: 14,
+    newOriginQty: 12,
+    prevDestQty: 0,
+    newDestQty: 0,
+    notes: 'Embalagem perfurada descartada',
+    timestamp: new Date(Date.now() - 3600000 * 36).toISOString()
   }
 ];
 
 const INITIAL_CYCLE_HISTORY = [
   {
     id: 'cycle-hist-1',
-    completedAt: new Date(Date.now() - 86400000 * 2).toLocaleDateString('pt-BR'),
+    completedAt: new Date(Date.now() - 86400000 * 2).toLocaleDateString('pt-BR') + ' 18:00',
     totalSkus: 12,
     checkedSkus: 12,
     divergentCount: 1,
@@ -266,7 +364,7 @@ const INITIAL_CYCLE_HISTORY = [
   },
   {
     id: 'cycle-hist-2',
-    completedAt: new Date(Date.now() - 86400000 * 4).toLocaleDateString('pt-BR'),
+    completedAt: new Date(Date.now() - 86400000 * 4).toLocaleDateString('pt-BR') + ' 18:00',
     totalSkus: 12,
     checkedSkus: 12,
     divergentCount: 0,
@@ -275,7 +373,7 @@ const INITIAL_CYCLE_HISTORY = [
 ];
 
 // ============================================================================
-// SINTETIZADOR WEB AUDIO - PIANO PETPIANO
+// SINTETIZADOR WEB AUDIO - PIANO PETPIANO (PRESERVADO)
 // ============================================================================
 
 class PetPianoAudio {
@@ -286,18 +384,15 @@ class PetPianoAudio {
 
   init() {
     if (!this.ctx) {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (AudioContext) {
-        this.ctx = new AudioContext();
-      }
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) this.ctx = new AudioCtx();
     }
     if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume();
     }
   }
 
-  // Toca uma nota suave com decay estilo piano
-  playNote(frequency, duration = 0.5, volume = 0.25) {
+  playNote(frequency, duration = 0.45, volume = 0.2) {
     if (!this.soundEnabled) return;
     try {
       this.init();
@@ -306,10 +401,9 @@ class PetPianoAudio {
       const osc = this.ctx.createOscillator();
       const gainNode = this.ctx.createGain();
 
-      osc.type = 'triangle'; // Som suave como corda de piano
+      osc.type = 'triangle';
       osc.frequency.setValueAtTime(frequency, this.ctx.currentTime);
 
-      // Envelope com ataque rápido e decaimento exponencial suave
       gainNode.gain.setValueAtTime(0.001, this.ctx.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(volume, this.ctx.currentTime + 0.02);
       gainNode.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
@@ -324,35 +418,30 @@ class PetPianoAudio {
     }
   }
 
-  // Efeito sonoro de contagem positiva
   playStepUp() {
-    this.playNote(523.25, 0.2, 0.2); // C5
+    this.playNote(523.25, 0.18, 0.15); // C5
   }
 
-  // Efeito sonoro de diminuição
   playStepDown() {
-    this.playNote(440.00, 0.2, 0.2); // A4
+    this.playNote(440.00, 0.18, 0.15); // A4
   }
 
-  // Efeito sonoro de item conferido (Dó - Sol)
   playCheck() {
-    this.playNote(523.25, 0.15, 0.2);
-    setTimeout(() => this.playNote(783.99, 0.35, 0.25), 90);
+    this.playNote(523.25, 0.12, 0.15);
+    setTimeout(() => this.playNote(783.99, 0.28, 0.2), 80);
   }
 
-  // Acorde triunfante de conclusão de ciclo / recebimento (C - E - G - C)
   playSuccessChord() {
     const notes = [523.25, 659.25, 783.99, 1046.50];
     notes.forEach((freq, idx) => {
-      setTimeout(() => this.playNote(freq, 0.5, 0.25), idx * 75);
+      setTimeout(() => this.playNote(freq, 0.45, 0.2), idx * 70);
     });
   }
 
-  // Acorde de alerta suave (Ruptura iminente)
   playAlertChord() {
     const notes = [440, 466.16, 440];
     notes.forEach((freq, idx) => {
-      setTimeout(() => this.playNote(freq, 0.3, 0.2), idx * 120);
+      setTimeout(() => this.playNote(freq, 0.25, 0.15), idx * 110);
     });
   }
 }
@@ -360,22 +449,31 @@ class PetPianoAudio {
 const audio = new PetPianoAudio();
 
 // ============================================================================
-// GERENCIADOR DE ESTADO DA APLICAÇÃO
+// CLASSE PRINCIPAL DO SISTEMA: PETPIANO RETAIL ENGINE
 // ============================================================================
 
 class PetPianoApp {
   constructor() {
     this.products = [];
     this.deliveries = [];
+    this.movements = [];
     this.cycle = null;
     this.cycleHistory = [];
-    this.activeTab = 'tab-count';
+    this.activeTab = 'tab-dashboard';
+    
+    // Filtros de Estoque
+    this.stockFilterSearch = '';
+    this.stockFilterCategory = '';
+    this.stockFilterStatus = '';
+    this.stockSortBy = 'name_asc';
+
+    // Filtros de Contagem
     this.countFilter = 'all';
     this.countSearchTerm = '';
     this.countCategory = '';
-    this.stockSearchTerm = '';
-    this.stockCategory = '';
-    this.stockStatusFilter = '';
+
+    // Filtros de Entregas
+    this.deliveryFilterStatus = '';
 
     this.init();
   }
@@ -383,12 +481,16 @@ class PetPianoApp {
   init() {
     this.loadState();
     this.setupEventListeners();
-    this.renderAll();
+    this.startClock();
     this.startCycleTimer();
     this.checkNotificationStatus();
+    this.renderAll();
   }
 
-  // Carrega ou inicializa o localStorage
+  // ==========================================================================
+  // CARREGAMENTO E PERSISTÊNCIA (LOCALSTORAGE)
+  // ==========================================================================
+
   loadState() {
     const savedProducts = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
     this.products = savedProducts ? JSON.parse(savedProducts) : INITIAL_PRODUCTS;
@@ -396,11 +498,13 @@ class PetPianoApp {
     const savedDeliveries = localStorage.getItem(STORAGE_KEYS.DELIVERIES);
     this.deliveries = savedDeliveries ? JSON.parse(savedDeliveries) : INITIAL_DELIVERIES;
 
+    const savedMovements = localStorage.getItem(STORAGE_KEYS.MOVEMENTS);
+    this.movements = savedMovements ? JSON.parse(savedMovements) : INITIAL_MOVEMENTS;
+
     const savedCycle = localStorage.getItem(STORAGE_KEYS.CYCLE);
     if (savedCycle) {
       this.cycle = JSON.parse(savedCycle);
     } else {
-      // Inicia um novo ciclo de 48h a partir de agora
       this.startNewCycle(false);
     }
 
@@ -411,17 +515,22 @@ class PetPianoApp {
     if (savedSettings) {
       const settings = JSON.parse(savedSettings);
       audio.soundEnabled = settings.soundEnabled ?? true;
-      this.updateSoundButtonUI();
     }
+    this.updateSoundButtonUI();
   }
 
   saveProducts() {
     localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(this.products));
-    this.updateStats();
+    this.renderMetricsAndBadges();
   }
 
   saveDeliveries() {
     localStorage.setItem(STORAGE_KEYS.DELIVERIES, JSON.stringify(this.deliveries));
+    this.renderMetricsAndBadges();
+  }
+
+  saveMovements() {
+    localStorage.setItem(STORAGE_KEYS.MOVEMENTS, JSON.stringify(this.movements));
   }
 
   saveCycle() {
@@ -438,10 +547,35 @@ class PetPianoApp {
     }));
   }
 
-  // Inicia um ciclo novo de 48 horas
+  // Registra movimentação no log de auditoria
+  logMovement({ productId, productName, type, quantity, origin, destination, prevOriginQty, newOriginQty, prevDestQty, newDestQty, notes }) {
+    const movement = {
+      id: 'mov-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+      productId,
+      productName,
+      type,
+      quantity: Number(quantity),
+      origin,
+      destination,
+      prevOriginQty: Number(prevOriginQty || 0),
+      newOriginQty: Number(newOriginQty || 0),
+      prevDestQty: Number(prevDestQty || 0),
+      newDestQty: Number(newDestQty || 0),
+      notes: notes || 'Movimentação operacional',
+      timestamp: new Date().toISOString()
+    };
+
+    this.movements.unshift(movement);
+    if (this.movements.length > 200) this.movements.pop(); // Mantém os últimos 200 registros
+    this.saveMovements();
+    this.renderAuditTable();
+    this.renderDashboardRecentMovements();
+  }
+
+  // Inicia um novo ciclo de 48 horas
   startNewCycle(showToastNotice = true) {
     const now = new Date();
-    const expires = new Date(now.getTime() + (48 * 60 * 60 * 1000)); // 48 horas
+    const expires = new Date(now.getTime() + (48 * 60 * 60 * 1000));
 
     this.cycle = {
       id: 'cycle-' + Date.now(),
@@ -450,7 +584,6 @@ class PetPianoApp {
       status: 'active'
     };
 
-    // Reseta o status de conferido dos produtos para a nova rodada
     this.products = this.products.map(p => ({
       ...p,
       checkedInCycle: false,
@@ -463,25 +596,59 @@ class PetPianoApp {
 
     if (showToastNotice) {
       audio.playSuccessChord();
-      this.showToast('Novo ciclo de 48h iniciado com sucesso!', 'success');
+      this.showToast('Novo ciclo de contagem de 48h iniciado!', 'success');
       this.renderAll();
     }
   }
 
   // ==========================================================================
-  // CONFIGURAÇÃO DE LISTENERS & EVENTOS
+  // CONFIGURAÇÃO DE LISTENERS & NAVEGAÇÃO
   // ==========================================================================
 
   setupEventListeners() {
-    // Abas de Navegação
-    document.querySelectorAll('.nav-tab').forEach(tab => {
-      tab.addEventListener('click', (e) => {
-        const tabTarget = tab.dataset.tab;
-        this.switchTab(tabTarget);
+    // Navegação Sidebar
+    document.querySelectorAll('.sidebar-nav .nav-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetTab = btn.dataset.tab;
+        this.switchTab(targetTab);
+        this.closeMobileSidebar();
       });
     });
 
-    // Toggle de Som de Piano
+    // Mobile Sidebar Drawer
+    const btnMenuMobile = document.getElementById('btnMenuMobile');
+    const btnSidebarClose = document.getElementById('btnSidebarClose');
+    const backdrop = document.getElementById('sidebarBackdrop');
+
+    if (btnMenuMobile) {
+      btnMenuMobile.addEventListener('click', () => this.openMobileSidebar());
+    }
+    if (btnSidebarClose) {
+      btnSidebarClose.addEventListener('click', () => this.closeMobileSidebar());
+    }
+    if (backdrop) {
+      backdrop.addEventListener('click', () => this.closeMobileSidebar());
+    }
+
+    // Busca Global no Topbar
+    const globalSearch = document.getElementById('globalSearchInput');
+    if (globalSearch) {
+      globalSearch.addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase().trim();
+        if (val) {
+          // Se o usuário digitar na busca global, direciona para produtos
+          if (this.activeTab !== 'tab-stock' && this.activeTab !== 'tab-count') {
+            this.switchTab('tab-stock');
+          }
+          this.stockFilterSearch = val;
+          const stockInput = document.getElementById('stockFilterSearch');
+          if (stockInput) stockInput.value = val;
+          this.renderStockTable();
+        }
+      });
+    }
+
+    // Botões de Som e Notificações
     const btnSound = document.getElementById('btnSoundToggle');
     if (btnSound) {
       btnSound.addEventListener('click', () => {
@@ -490,36 +657,74 @@ class PetPianoApp {
         this.updateSoundButtonUI();
         if (audio.soundEnabled) {
           audio.playStepUp();
-          this.showToast('Sons de piano ativados 🎹', 'info');
+          this.showToast('Sons operacionais ativados 🎹', 'info');
         } else {
-          this.showToast('Sons silenciados 🔇', 'info');
+          this.showToast('Sons operacionais silenciados 🔇', 'info');
         }
       });
     }
 
-    // Botão de Permissão de Notificações
     const btnNotif = document.getElementById('btnNotificationsPermission');
     if (btnNotif) {
       btnNotif.addEventListener('click', () => this.requestNotificationPermission());
     }
 
-    // Botão Novo Ciclo Topbar
-    const btnNewCycle = document.getElementById('btnNewCycle');
+    // Botão Novo Ciclo
+    const btnNewCycle = document.getElementById('btnNewCycleTopbar');
     if (btnNewCycle) {
       btnNewCycle.addEventListener('click', () => {
-        if (confirm('Deseja iniciar um novo ciclo de contagem de 48 horas? Todos os itens voltarão ao status de pendente para nova conferência.')) {
+        if (confirm('Deseja iniciar uma nova rodada de 48 horas? Os status de conferência dos produtos voltarão para pendente.')) {
           this.startNewCycle(true);
         }
       });
     }
 
-    // Filtros de Contagem Rápida
-    const filterGroup = document.getElementById('countFilterGroup');
-    if (filterGroup) {
-      filterGroup.addEventListener('click', (e) => {
+    // Botão Transferência Rápida no Topbar
+    const btnQuickTf = document.getElementById('btnOpenTransferQuick');
+    if (btnQuickTf) {
+      btnQuickTf.addEventListener('click', () => this.openTransferModal(null));
+    }
+
+    // Filtros de Estoque
+    const filterSearch = document.getElementById('stockFilterSearch');
+    if (filterSearch) {
+      filterSearch.addEventListener('input', (e) => {
+        this.stockFilterSearch = e.target.value.toLowerCase().trim();
+        this.renderStockTable();
+      });
+    }
+
+    const filterCategory = document.getElementById('stockFilterCategory');
+    if (filterCategory) {
+      filterCategory.addEventListener('change', (e) => {
+        this.stockFilterCategory = e.target.value;
+        this.renderStockTable();
+      });
+    }
+
+    const filterStatus = document.getElementById('stockFilterStatus');
+    if (filterStatus) {
+      filterStatus.addEventListener('change', (e) => {
+        this.stockFilterStatus = e.target.value;
+        this.renderStockTable();
+      });
+    }
+
+    const sortBy = document.getElementById('stockSortBy');
+    if (sortBy) {
+      sortBy.addEventListener('change', (e) => {
+        this.stockSortBy = e.target.value;
+        this.renderStockTable();
+      });
+    }
+
+    // Filtros de Contagem Express
+    const countPills = document.getElementById('countPillsContainer');
+    if (countPills) {
+      countPills.addEventListener('click', (e) => {
         const btn = e.target.closest('.pill-btn');
         if (btn && btn.dataset.filter) {
-          filterGroup.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+          countPills.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           this.countFilter = btn.dataset.filter;
           this.renderCountCards();
@@ -535,92 +740,146 @@ class PetPianoApp {
       });
     }
 
-    const countCategory = document.getElementById('countCategorySelect');
-    if (countCategory) {
-      countCategory.addEventListener('change', (e) => {
+    const countCat = document.getElementById('countCategoryFilter');
+    if (countCat) {
+      countCat.addEventListener('change', (e) => {
         this.countCategory = e.target.value;
         this.renderCountCards();
       });
     }
 
-    // Filtros de Estoque Geral
-    const stockSearch = document.getElementById('stockSearchInput');
-    if (stockSearch) {
-      stockSearch.addEventListener('input', (e) => {
-        this.stockSearchTerm = e.target.value.toLowerCase().trim();
-        this.renderStockTable();
+    // Filtro de Entregas
+    const delivStatusFilter = document.getElementById('deliveryFilterStatus');
+    if (delivStatusFilter) {
+      delivStatusFilter.addEventListener('change', (e) => {
+        this.deliveryFilterStatus = e.target.value;
+        this.renderDeliveries();
       });
     }
 
-    const stockCategory = document.getElementById('stockCategorySelect');
-    if (stockCategory) {
-      stockCategory.addEventListener('change', (e) => {
-        this.stockCategory = e.target.value;
-        this.renderStockTable();
-      });
-    }
+    // Ações de Exportação e Impressão
+    const btnExpStock = document.getElementById('btnExportStockCSV');
+    if (btnExpStock) btnExpStock.addEventListener('click', () => this.exportCSV('stock'));
 
-    const stockStatus = document.getElementById('stockStatusFilter');
-    if (stockStatus) {
-      stockStatus.addEventListener('change', (e) => {
-        this.stockStatusFilter = e.target.value;
-        this.renderStockTable();
-      });
-    }
+    const btnExpAudit = document.getElementById('btnExportAuditCSV');
+    if (btnExpAudit) btnExpAudit.addEventListener('click', () => this.exportCSV('audit'));
 
-    // Atualizar Alertas
-    const btnRefreshAlerts = document.getElementById('btnRefreshAlerts');
-    if (btnRefreshAlerts) {
-      btnRefreshAlerts.addEventListener('click', () => {
-        this.renderAlerts();
-        audio.playStepUp();
-        this.showToast('Painel de alertas atualizado!', 'info');
-      });
-    }
+    const btnPrintSheet = document.getElementById('btnPrintCountSheet');
+    if (btnPrintSheet) btnPrintSheet.addEventListener('click', () => window.print());
 
-    // Modais e Diálogos
-    this.setupModals();
+    const btnFinishCycle = document.getElementById('btnFinishCycleModal');
+    if (btnFinishCycle) btnFinishCycle.addEventListener('click', () => this.openFinishCycleModal());
 
-    // Exportação & Relatórios
-    const btnExportCSV = document.getElementById('btnExportCSV');
-    if (btnExportCSV) btnExportCSV.addEventListener('click', () => this.exportCSV());
-
-    const btnPrint = document.getElementById('btnPrintReport');
-    if (btnPrint) btnPrint.addEventListener('click', () => window.print());
+    const btnConfirmFinish = document.getElementById('btnConfirmFinishCycle');
+    if (btnConfirmFinish) btnConfirmFinish.addEventListener('click', () => this.confirmFinishCycle());
 
     const btnResetDemo = document.getElementById('btnResetDemoData');
     if (btnResetDemo) {
       btnResetDemo.addEventListener('click', () => {
-        if (confirm('Tem certeza que deseja restaurar os produtos e entregas para o exemplo inicial do PetPiano?')) {
+        if (confirm('Restaurar o catálogo e as movimentações para os dados demonstrativos de varejo do PetPiano?')) {
           localStorage.clear();
           this.loadState();
           this.renderAll();
-          this.showToast('Dados de demonstração restaurados!', 'info');
+          this.showToast('Dados demonstrativos restaurados com sucesso!', 'info');
         }
       });
     }
 
-    const btnOpenNewDelivery = document.getElementById('btnOpenNewDeliveryModal');
-    if (btnOpenNewDelivery) {
-      btnOpenNewDelivery.addEventListener('click', () => this.openNewDeliveryModal());
-    }
+    // Configuração dos Modais e Formulários
+    this.setupModalsAndForms();
+  }
 
-    const btnCompleteCycleModal = document.getElementById('btnCompleteCycleModal');
-    if (btnCompleteCycleModal) {
-      btnCompleteCycleModal.addEventListener('click', () => this.openFinishCycleModal());
-    }
+  openMobileSidebar() {
+    const sidebar = document.getElementById('appSidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    if (sidebar) sidebar.classList.add('open');
+    if (backdrop) backdrop.classList.add('open');
+  }
 
-    const btnConfirmFinishCycle = document.getElementById('btnConfirmFinishCycle');
-    if (btnConfirmFinishCycle) {
-      btnConfirmFinishCycle.addEventListener('click', () => this.confirmFinishCycle());
+  closeMobileSidebar() {
+    const sidebar = document.getElementById('appSidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    if (sidebar) sidebar.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('open');
+  }
+
+  switchTab(tabId) {
+    document.querySelectorAll('.sidebar-nav .nav-item').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tabId);
+    });
+
+    document.querySelectorAll('.view-panel').forEach(panel => {
+      panel.classList.toggle('active', panel.id === tabId);
+    });
+
+    this.activeTab = tabId;
+
+    if (tabId === 'tab-dashboard') this.renderDashboard();
+    else if (tabId === 'tab-stock') this.renderStockTable();
+    else if (tabId === 'tab-count') this.renderCountCards();
+    else if (tabId === 'tab-transfer') this.renderTransferView();
+    else if (tabId === 'tab-deliveries') this.renderDeliveries();
+    else if (tabId === 'tab-alerts') this.renderAlerts();
+    else if (tabId === 'tab-audit') this.renderAuditTable();
+    else if (tabId === 'tab-ecommerce') this.renderEcommerceCatalog();
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  updateSoundButtonUI() {
+    const icon = document.getElementById('soundIcon');
+    if (icon) {
+      icon.textContent = audio.soundEnabled ? '🔊' : '🔇';
     }
   }
 
+  startClock() {
+    const update = () => {
+      const el = document.getElementById('dashboardClock');
+      if (el) {
+        const now = new Date();
+        el.textContent = now.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' }) + ' • ' + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      }
+    };
+    update();
+    setInterval(update, 10000);
+  }
+
+  startCycleTimer() {
+    const update = () => {
+      if (!this.cycle) return;
+      const now = new Date();
+      const expires = new Date(this.cycle.expiresAt);
+      const diffMs = expires.getTime() - now.getTime();
+
+      const hoursLeft = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60)));
+      const minutesLeft = Math.max(0, Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60)));
+
+      const sidebarHours = document.getElementById('sidebarCycleHours');
+      const countTimer = document.getElementById('countCycleTimerText');
+      const topbarLabel = document.getElementById('topbarCycleLabel');
+
+      if (diffMs <= 0) {
+        if (sidebarHours) sidebarHours.textContent = 'Expirado';
+        if (countTimer) countTimer.textContent = 'Ciclo de 48h expirou. Conclua para registrar histórico.';
+        if (topbarLabel) topbarLabel.textContent = 'Ciclo 48h finalizado (Aguardando encerramento)';
+      } else {
+        const txt = `${hoursLeft}h ${minutesLeft}m restantes`;
+        if (sidebarHours) sidebarHours.textContent = `${hoursLeft}h rest.`;
+        if (countTimer) countTimer.textContent = `Prazo do ciclo: ${txt}`;
+        if (topbarLabel) topbarLabel.textContent = `Ciclo 48h ativo (${hoursLeft}h restantes)`;
+      }
+    };
+
+    update();
+    setInterval(update, 30000);
+  }
+
   // ==========================================================================
-  // CONFIGURAÇÃO DE MODAIS (<dialog>)
+  // CONFIGURAÇÃO DE MODAIS (<dialog>) E FORMULÁRIOS
   // ==========================================================================
 
-  setupModals() {
+  setupModalsAndForms() {
     // Fechamento genérico de botões com data-close-dialog
     document.querySelectorAll('[data-close-dialog]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -630,15 +889,7 @@ class PetPianoApp {
       });
     });
 
-    // Abrir Modal de Novo Produto
-    const btnOpenProduct = document.getElementById('btnOpenNewProduct');
-    if (btnOpenProduct) {
-      btnOpenProduct.addEventListener('click', () => {
-        this.openProductModal(null);
-      });
-    }
-
-    // Submissão do Formulário de Produto
+    // Form de Produto
     const formProduct = document.getElementById('formProduct');
     if (formProduct) {
       formProduct.addEventListener('submit', (e) => {
@@ -647,7 +898,7 @@ class PetPianoApp {
       });
     }
 
-    // Submissão do Formulário de Ajuste de Quantidade
+    // Form de Ajuste de Saldo
     const formAdjust = document.getElementById('formAdjustQuantity');
     if (formAdjust) {
       formAdjust.addEventListener('submit', (e) => {
@@ -656,32 +907,54 @@ class PetPianoApp {
       });
     }
 
-    // Stepper botões no modal de ajuste (+1, -1, +5, -5)
+    // Steppers de Ajuste (+1, -1, +5, -5)
     document.querySelectorAll('.btn-step').forEach(btn => {
       btn.addEventListener('click', () => {
         const targetId = btn.dataset.stepTarget;
         const step = parseInt(btn.dataset.step, 10);
         const input = document.getElementById(targetId);
         if (input) {
-          const currentVal = parseInt(input.value, 10) || 0;
-          const nextVal = Math.max(0, currentVal + step);
-          input.value = nextVal;
+          const cur = parseInt(input.value, 10) || 0;
+          input.value = Math.max(0, cur + step);
           if (step > 0) audio.playStepUp();
           else audio.playStepDown();
         }
       });
     });
 
-    // Submissão de Transferência (Estoque -> Loja)
-    const formTransfer = document.getElementById('formTransferStock');
-    if (formTransfer) {
-      formTransfer.addEventListener('submit', (e) => {
+    // Form de Transferência Direta (Aba de Transferência)
+    const formTfDirect = document.getElementById('formTransferDirect');
+    if (formTfDirect) {
+      formTfDirect.addEventListener('submit', (e) => {
         e.preventDefault();
-        this.saveTransferStock();
+        this.saveDirectTransfer();
       });
     }
 
-    // Submissão de Nova Entrega
+    // Listener de Mudança no Select de Produto ou Sentido de Transferência
+    const tfProdSelect = document.getElementById('tfProductSelect');
+    const tfDirSelect = document.getElementById('tfDirection');
+    const tfQtyInput = document.getElementById('tfQuantity');
+
+    if (tfProdSelect) tfProdSelect.addEventListener('change', () => this.updateTransferPreview());
+    if (tfDirSelect) tfDirSelect.addEventListener('change', () => this.updateTransferPreview());
+    if (tfQtyInput) tfQtyInput.addEventListener('input', () => this.updateTransferPreview());
+
+    // Form de Transferência Modal
+    const formTfModal = document.getElementById('formTransferStockModal');
+    if (formTfModal) {
+      formTfModal.addEventListener('submit', (e) => {
+        e.preventDefault();
+        this.saveModalTransfer();
+      });
+    }
+
+    const modalTfDir = document.getElementById('modalTfDirection');
+    const modalTfQty = document.getElementById('modalTfQuantity');
+    if (modalTfDir) modalTfDir.addEventListener('change', () => this.updateModalTransferPreview());
+    if (modalTfQty) modalTfQty.addEventListener('input', () => this.updateModalTransferPreview());
+
+    // Form de Nova Entrega
     const formNewDelivery = document.getElementById('formNewDelivery');
     if (formNewDelivery) {
       formNewDelivery.addEventListener('submit', (e) => {
@@ -689,69 +962,63 @@ class PetPianoApp {
         this.saveNewDelivery();
       });
     }
-  }
 
-  // Alterna entre abas
-  switchTab(tabId) {
-    document.querySelectorAll('.nav-tab').forEach(tab => {
-      tab.classList.toggle('active', tab.dataset.tab === tabId);
-    });
+    // Form de Recebimento de Entrega com Validação
+    const formRcvDelivery = document.getElementById('formReceiveDelivery');
+    if (formRcvDelivery) {
+      formRcvDelivery.addEventListener('submit', (e) => {
+        e.preventDefault();
+        this.confirmReceiveDelivery();
+      });
+    }
 
-    document.querySelectorAll('.tab-content').forEach(content => {
-      content.classList.toggle('active', content.id === tabId);
-    });
-
-    this.activeTab = tabId;
-
-    if (tabId === 'tab-count') this.renderCountCards();
-    else if (tabId === 'tab-stock') this.renderStockTable();
-    else if (tabId === 'tab-alerts') this.renderAlerts();
-    else if (tabId === 'tab-deliveries') this.renderDeliveries();
-    else if (tabId === 'tab-reports') this.renderReports();
-  }
-
-  updateSoundButtonUI() {
-    const btn = document.getElementById('btnSoundToggle');
-    if (!btn) return;
-    btn.innerHTML = audio.soundEnabled 
-      ? '<span class="icon-sound">🔊</span>' 
-      : '<span class="icon-sound">🔇</span>';
-    btn.title = audio.soundEnabled 
-      ? 'Efeitos Sonoros de Piano (Ativado)' 
-      : 'Efeitos Sonoros Silenciados (Desativado)';
+    const rcvQtyInput = document.getElementById('rcvQuantityInput');
+    if (rcvQtyInput) {
+      rcvQtyInput.addEventListener('input', () => this.updateReceiveDifferenceHint());
+    }
   }
 
   // ==========================================================================
-  // RENDERIZAÇÃO GERAL
+  // RENDERIZAÇÃO GERAL E MÉTRICAS
   // ==========================================================================
 
   renderAll() {
-    this.updateStats();
-    this.renderCycleBanner();
-    this.renderCountCards();
+    this.renderMetricsAndBadges();
+    this.renderDashboard();
     this.renderStockTable();
-    this.renderAlerts();
+    this.renderCountCards();
+    this.renderTransferView();
     this.renderDeliveries();
-    this.renderReports();
+    this.renderAlerts();
+    this.renderAuditTable();
+    this.renderEcommerceCatalog();
   }
 
-  // Atualiza os contadores no Topbar e Stat Cards
-  updateStats() {
+  // Atualiza indicadores métricos no Dashboard, Sidebar e Topbar
+  renderMetricsAndBadges() {
     let totalLoja = 0;
     let totalEstoque = 0;
-    let alertCount = 0;
+    let criticalCount = 0;
+    let belowMinCount = 0;
     let checkedCount = 0;
+
+    const totalSkus = this.products.length;
 
     this.products.forEach(p => {
       const qLoja = Number(p.qtyLoja) || 0;
       const qEstoque = Number(p.qtyEstoque) || 0;
       const total = qLoja + qEstoque;
+      const min = Number(p.minStock) || 0;
 
       totalLoja += qLoja;
       totalEstoque += qEstoque;
 
-      if (total <= (Number(p.minStock) || 0)) {
-        alertCount++;
+      if (total <= min) {
+        belowMinCount++;
+      }
+
+      if (total <= Math.ceil(min / 2) || total === 0) {
+        criticalCount++;
       }
 
       if (p.checkedInCycle) {
@@ -759,427 +1026,339 @@ class PetPianoApp {
       }
     });
 
-    const totalSkus = this.products.length;
+    const pendingCount = totalSkus - checkedCount;
     const progressPercent = totalSkus > 0 ? Math.round((checkedCount / totalSkus) * 100) : 0;
 
-    // Stat Cards
-    const elLoja = document.getElementById('statLojaCount');
-    const elEstoque = document.getElementById('statEstoqueCount');
-    const elConferidos = document.getElementById('statConferidosCount');
-    const elConferidosSub = document.getElementById('statConferidosSub');
-    const elAlertas = document.getElementById('statAlertasCount');
-
-    if (elLoja) elLoja.textContent = totalLoja;
-    if (elEstoque) elEstoque.textContent = totalEstoque;
-    if (elConferidos) elConferidos.textContent = `${progressPercent}%`;
-    if (elConferidosSub) elConferidosSub.textContent = `${totalSkus - checkedCount} pendentes de contagem`;
-    if (elAlertas) elAlertas.textContent = alertCount;
-
-    // Pills de Abas
-    const pillCount = document.getElementById('tabPillCount');
-    const pillStock = document.getElementById('tabPillStock');
-    const pillAlerts = document.getElementById('tabPillAlerts');
-    const pillDeliv = document.getElementById('tabPillDeliveries');
-
-    if (pillCount) pillCount.textContent = `${checkedCount}/${totalSkus}`;
-    if (pillStock) pillStock.textContent = totalSkus;
-    if (pillAlerts) pillAlerts.textContent = alertCount;
-    if (pillDeliv) pillDeliv.textContent = this.deliveries.filter(d => d.status === 'in_transit').length;
-
-    // Contadores de filtro da aba de contagem
-    const divergentCount = this.products.filter(p => {
-      const currentTotal = (Number(p.qtyLoja) || 0) + (Number(p.qtyEstoque) || 0);
-      return p.checkedInCycle && currentTotal !== p.baselineTotal;
-    }).length;
-
-    const criticalCount = this.products.filter(p => {
-      const total = (Number(p.qtyLoja) || 0) + (Number(p.qtyEstoque) || 0);
-      return total <= (Number(p.minStock) || 0);
-    }).length;
-
-    const elFAll = document.getElementById('filterAllCount');
-    const elFPending = document.getElementById('filterPendingCount');
-    const elFChecked = document.getElementById('filterCheckedCount');
-    const elFDivergent = document.getElementById('filterDivergentCount');
-    const elFCritical = document.getElementById('filterCriticalCount');
-
-    if (elFAll) elFAll.textContent = totalSkus;
-    if (elFPending) elFPending.textContent = totalSkus - checkedCount;
-    if (elFChecked) elFChecked.textContent = checkedCount;
-    if (elFDivergent) elFDivergent.textContent = divergentCount;
-    if (elFCritical) elFCritical.textContent = criticalCount;
-  }
-
-  // Barra de progresso do Ciclo de 2 Dias
-  renderCycleBanner() {
-    const totalSkus = this.products.length;
-    const checkedCount = this.products.filter(p => p.checkedInCycle).length;
-    const progressPercent = totalSkus > 0 ? Math.round((checkedCount / totalSkus) * 100) : 0;
-
-    const progressBar = document.getElementById('cycleProgressBar');
-    const progressText = document.getElementById('cycleProgressText');
-
-    if (progressBar) progressBar.style.width = `${progressPercent}%`;
-    if (progressText) progressText.textContent = `${checkedCount} / ${totalSkus} itens (${progressPercent}%)`;
-  }
-
-  // Timer regressivo do ciclo de 48h
-  startCycleTimer() {
-    const update = () => {
-      if (!this.cycle) return;
-      const now = new Date();
-      const expires = new Date(this.cycle.expiresAt);
-      const diffMs = expires.getTime() - now.getTime();
-
-      const note = document.getElementById('cycleTimerNote');
-      const badge = document.getElementById('cycleStatusBadge');
-
-      if (diffMs <= 0) {
-        if (note) note.textContent = 'Ciclo de 48h expirou! Clique em "Novo Ciclo" para iniciar a próxima contagem.';
-        if (badge) {
-          badge.textContent = 'Tempo Expirado';
-          badge.style.color = '#f43f5e';
-          badge.style.background = 'rgba(244, 63, 94, 0.2)';
-        }
-      } else {
-        const hours = Math.floor(diffMs / (1000 * 60 * 60));
-        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-        if (note) note.textContent = `Ciclo atual de 48h expira em ${hours}h ${minutes}min.`;
-        if (badge) {
-          badge.textContent = `${hours}h restantes`;
-          badge.style.color = '#38bdf8';
-          badge.style.background = 'rgba(56, 189, 248, 0.15)';
-        }
-      }
-    };
-
-    update();
-    setInterval(update, 60000); // atualiza a cada 1 minuto
-  }
-
-  // ==========================================================================
-  // ABA 1: CONTAGEM RÁPIDA (CARDS DE CONTAGEM EXPRESS)
-  // ==========================================================================
-
-  renderCountCards() {
-    const container = document.getElementById('countCardsContainer');
-    const emptyState = document.getElementById('countEmptyState');
-    if (!container) return;
-
-    // Filtra itens
-    let filtered = this.products.filter(p => {
-      // Busca
-      if (this.countSearchTerm) {
-        const term = this.countSearchTerm;
-        const matchName = p.name.toLowerCase().includes(term);
-        const matchBrand = (p.brand || '').toLowerCase().includes(term);
-        const matchSku = (p.sku || '').toLowerCase().includes(term);
-        if (!matchName && !matchBrand && !matchSku) return false;
-      }
-
-      // Categoria
-      if (this.countCategory && p.category !== this.countCategory) {
-        return false;
-      }
-
-      // Filtro de status
-      const total = (Number(p.qtyLoja) || 0) + (Number(p.qtyEstoque) || 0);
-      const isCritical = total <= (Number(p.minStock) || 0);
-      const isDivergent = p.checkedInCycle && total !== p.baselineTotal;
-
-      if (this.countFilter === 'pending' && p.checkedInCycle) return false;
-      if (this.countFilter === 'checked' && !p.checkedInCycle) return false;
-      if (this.countFilter === 'divergent' && !isDivergent) return false;
-      if (this.countFilter === 'critical' && !isCritical) return false;
-
-      return true;
+    const divergentItems = this.products.filter(p => {
+      const curTotal = (Number(p.qtyLoja) || 0) + (Number(p.qtyEstoque) || 0);
+      return p.checkedInCycle && curTotal !== p.baselineTotal;
     });
 
-    if (filtered.length === 0) {
-      container.innerHTML = '';
-      if (emptyState) emptyState.style.display = 'block';
+    const accuracyRate = checkedCount > 0
+      ? Math.round(((checkedCount - divergentItems.length) / checkedCount) * 100)
+      : 100;
+
+    const inTransitDeliveries = this.deliveries.filter(d => d.status === 'in_transit' || d.status === 'today' || d.status === 'delayed').length;
+
+    // Métricas do Dashboard Principal
+    const elDashTotal = document.getElementById('dashTotalSkus');
+    const elDashLoja = document.getElementById('dashTotalLoja');
+    const elDashEstoque = document.getElementById('dashTotalEstoque');
+    const elDashCritical = document.getElementById('dashCriticalSkus');
+    const elDashCriticalSub = document.getElementById('dashCriticalSub');
+    const elDashBelowMin = document.getElementById('dashBelowMinSkus');
+    const elDashPending = document.getElementById('dashPendingCount');
+    const elDashPendingSub = document.getElementById('dashPendingSub');
+    const elDashDeliv = document.getElementById('dashDeliveriesCount');
+    const elDashDelivSub = document.getElementById('dashDeliveriesSub');
+    const elDashDivergent = document.getElementById('dashDivergenceCount');
+    const elDashAccuracySub = document.getElementById('dashAccuracySub');
+
+    if (elDashTotal) elDashTotal.textContent = totalSkus;
+    if (elDashLoja) elDashLoja.textContent = totalLoja;
+    if (elDashEstoque) elDashEstoque.textContent = totalEstoque;
+    if (elDashCritical) elDashCritical.textContent = criticalCount;
+    if (elDashCriticalSub) elDashCriticalSub.textContent = `${criticalCount} itens em risco iminente de falta`;
+    if (elDashBelowMin) elDashBelowMin.textContent = belowMinCount;
+    if (elDashPending) elDashPending.textContent = pendingCount;
+    if (elDashPendingSub) elDashPendingSub.textContent = `${checkedCount} de ${totalSkus} itens auditados (${progressPercent}%)`;
+    if (elDashDeliv) elDashDeliv.textContent = inTransitDeliveries;
+    if (elDashDelivSub) elDashDelivSub.textContent = `${inTransitDeliveries} remessas a caminho`;
+    if (elDashDivergent) elDashDivergent.textContent = divergentItems.length;
+    if (elDashAccuracySub) elDashAccuracySub.textContent = `Acurácia da rodada: ${accuracyRate}%`;
+
+    // Badges da Sidebar
+    const bTotal = document.getElementById('badgeTotalSkus');
+    const bPending = document.getElementById('badgePendingCount');
+    const bDeliv = document.getElementById('badgeDeliveriesActive');
+    const bAlerts = document.getElementById('badgeCriticalAlerts');
+
+    if (bTotal) bTotal.textContent = totalSkus;
+    if (bPending) bPending.textContent = pendingCount;
+    if (bDeliv) bDeliv.textContent = inTransitDeliveries;
+    if (bAlerts) bAlerts.textContent = criticalCount;
+
+    // Mini Widget do Ciclo na Sidebar
+    const sBar = document.getElementById('sidebarCycleBar');
+    const sText = document.getElementById('sidebarCycleText');
+    if (sBar) sBar.style.width = `${progressPercent}%`;
+    if (sText) sText.textContent = `${checkedCount} de ${totalSkus} conferidos (${progressPercent}%)`;
+
+    // Banner da Aba de Contagem
+    const cBar = document.getElementById('countCycleProgressBar');
+    const cItemsRatio = document.getElementById('countCycleItemsRatio');
+    const cPercent = document.getElementById('countCyclePercent');
+    const cDivergences = document.getElementById('countCycleDivergences');
+    const cAccuracy = document.getElementById('countCycleAccuracy');
+
+    if (cBar) cBar.style.width = `${progressPercent}%`;
+    if (cItemsRatio) cItemsRatio.textContent = `${checkedCount} de ${totalSkus} itens conferidos`;
+    if (cPercent) cPercent.textContent = `${progressPercent}%`;
+    if (cDivergences) cDivergences.textContent = divergentItems.length;
+    if (cAccuracy) cAccuracy.textContent = `${accuracyRate}%`;
+
+    // Pills da Contagem
+    const pillAll = document.getElementById('pillCountAll');
+    const pillPend = document.getElementById('pillCountPending');
+    const pillCheck = document.getElementById('pillCountChecked');
+    const pillDiv = document.getElementById('pillCountDivergent');
+    const pillCrit = document.getElementById('pillCountCritical');
+
+    if (pillAll) pillAll.textContent = totalSkus;
+    if (pillPend) pillPend.textContent = pendingCount;
+    if (pillCheck) pillCheck.textContent = checkedCount;
+    if (pillDiv) pillDiv.textContent = divergentItems.length;
+    if (pillCrit) pillCrit.textContent = criticalCount;
+  }
+
+  // ==========================================================================
+  // SEÇÃO 1: DASHBOARD OPERACIONAL & PRIORIDADES
+  // ==========================================================================
+
+  renderDashboard() {
+    this.renderDashboardPriorities();
+    this.renderDashboardRecentMovements();
+    this.renderDashboardUpcomingDeliveries();
+  }
+
+  // Renderiza a área de prioridades com ações claras e ordenadas por urgência
+  renderDashboardPriorities() {
+    const container = document.getElementById('dashboardPrioritiesGrid');
+    if (!container) return;
+
+    const criticalItems = this.products.filter(p => {
+      const total = (Number(p.qtyLoja) || 0) + (Number(p.qtyEstoque) || 0);
+      return total <= Math.ceil((Number(p.minStock) || 0) / 2) || total === 0;
+    });
+
+    const pendingItems = this.products.filter(p => !p.checkedInCycle);
+    const activeDeliveries = this.deliveries.filter(d => d.status === 'in_transit' || d.status === 'today' || d.status === 'delayed');
+    const delayedDeliveries = this.deliveries.filter(d => d.status === 'delayed');
+
+    const priorities = [
+      {
+        urgency: criticalItems.length > 0 ? 'high' : 'normal',
+        icon: '🚨',
+        title: `${criticalItems.length} Produtos em Risco de Ruptura`,
+        desc: criticalItems.length > 0
+          ? `Itens como "${criticalItems[0].name}" estão esgotados ou próximos do fim.`
+          : 'Nenhum produto em nível crítico no momento.',
+        actionLabel: 'Ver Produtos Críticos',
+        actionFn: "app.switchTab('tab-alerts')"
+      },
+      {
+        urgency: pendingItems.length > 0 ? 'high' : 'normal',
+        icon: '⏱️',
+        title: `${pendingItems.length} Itens Pendentes no Ciclo 48h`,
+        desc: pendingItems.length > 0
+          ? 'Conferência física obrigatória a cada 2 dias para manter a acurácia.'
+          : 'Parabéns! Todos os produtos foram auditados nesta rodada.',
+        actionLabel: 'Conferir Produtos Pendentes',
+        actionFn: "app.filterCount('pending')"
+      },
+      {
+        urgency: delayedDeliveries.length > 0 ? 'high' : 'normal',
+        icon: '🚚',
+        title: `${activeDeliveries.length} Entregas Previstas`,
+        desc: delayedDeliveries.length > 0
+          ? `Atenção: ${delayedDeliveries.length} pedido(s) constam como atrasados.`
+          : 'Acompanhe as datas estimadas de chegada dos fornecedores.',
+        actionLabel: 'Verificar Entregas & Pedidos',
+        actionFn: "app.switchTab('tab-deliveries')"
+      },
+      {
+        urgency: 'normal',
+        icon: '🔄',
+        title: 'Reposição de Gôndola',
+        desc: 'Transfira caixas do depósito para a frente de loja para evitar prateleira vazia.',
+        actionLabel: 'Fazer Transferência Interna',
+        actionFn: "app.switchTab('tab-transfer')"
+      }
+    ];
+
+    container.innerHTML = priorities.map(item => `
+      <div class="priority-action-card">
+        <div class="priority-card-top">
+          <span class="priority-icon">${item.icon}</span>
+          <div>
+            <h4 class="priority-card-title">${item.title}</h4>
+            <p class="priority-card-desc">${item.desc}</p>
+          </div>
+        </div>
+        <button class="btn btn-sm ${item.urgency === 'high' ? 'btn-primary' : 'btn-outline'}" onclick="${item.actionFn}">
+          ${item.actionLabel} →
+        </button>
+      </div>
+    `).join('');
+  }
+
+  filterCount(filterMode) {
+    this.switchTab('tab-count');
+    const pills = document.getElementById('countPillsContainer');
+    if (pills) {
+      const btn = pills.querySelector(`[data-filter="${filterMode}"]`);
+      if (btn) btn.click();
+    }
+  }
+
+  renderDashboardRecentMovements() {
+    const tbody = document.getElementById('dashRecentMovementsBody');
+    if (!tbody) return;
+
+    const recent = this.movements.slice(0, 5);
+    if (recent.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" class="text-muted" style="text-align: center; padding: 1.5rem;">Nenhuma movimentação registrada recentemente.</td></tr>`;
       return;
     }
 
-    if (emptyState) emptyState.style.display = 'none';
+    tbody.innerHTML = recent.map(m => `
+      <tr>
+        <td><strong>${m.productName}</strong></td>
+        <td><span class="badge-tag badge-tag-forest">${m.type}</span></td>
+        <td class="td-num font-mono"><strong>${m.quantity > 0 ? '+' : ''}${m.quantity}</strong> un</td>
+        <td class="text-secondary">${new Date(m.timestamp).toLocaleDateString('pt-BR')} ${new Date(m.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
+      </tr>
+    `).join('');
+  }
 
-    container.innerHTML = filtered.map(p => {
-      const qLoja = Number(p.qtyLoja) || 0;
-      const qEstoque = Number(p.qtyEstoque) || 0;
-      const total = qLoja + qEstoque;
-      const isCritical = total <= (Number(p.minStock) || 0);
-      const isDivergent = p.checkedInCycle && total !== p.baselineTotal;
-      const diff = total - p.baselineTotal;
+  renderDashboardUpcomingDeliveries() {
+    const container = document.getElementById('dashUpcomingDeliveriesList');
+    if (!container) return;
 
-      let cardClass = 'count-card';
-      if (p.checkedInCycle) cardClass += ' is-checked';
-      if (isDivergent) cardClass += ' is-divergent';
-      if (isCritical) cardClass += ' is-critical';
+    const active = this.deliveries.filter(d => d.status !== 'delivered').slice(0, 4);
+    if (active.length === 0) {
+      container.innerHTML = `<div class="text-muted" style="text-align: center; padding: 1.5rem;">Nenhuma entrega pendente no momento.</div>`;
+      return;
+    }
+
+    container.innerHTML = active.map(d => {
+      const prod = this.products.find(p => p.id === d.productId) || { name: 'Item Encomendado' };
+      const daysLeft = this.calculateDaysLeft(d.expectedDate);
 
       return `
-        <div class="${cardClass}" data-product-id="${p.id}">
-          <div class="count-card-header">
-            <div class="count-card-meta">
-              <span class="count-badge-cat">${p.category}</span>
-              <h3 class="count-card-name">${p.name}</h3>
-              <span class="count-card-sub">${p.brand || ''} • SKU: ${p.sku || '--'}</span>
-            </div>
-            <div class="count-status-badges">
-              ${p.checkedInCycle 
-                ? '<span class="badge-tag badge-tag-checked">✓ Conferido</span>' 
-                : '<span class="badge-tag badge-tag-pending">⏳ Pendente</span>'}
-              
-              ${isCritical 
-                ? '<span class="badge-tag badge-tag-critical">⚠️ Reposição</span>' 
-                : ''}
-              
-              ${isDivergent 
-                ? `<span class="badge-tag badge-tag-divergent">${diff > 0 ? '+' + diff : diff} divergência</span>` 
-                : ''}
-            </div>
+        <div class="delivery-quick-item">
+          <div>
+            <div style="font-weight: 700; font-size: 0.85rem;">${prod.name}</div>
+            <div style="font-size: 0.72rem; color: var(--color-text-secondary);">${d.supplier} • ${d.orderedQuantity} un</div>
           </div>
-
-          <!-- Áreas de Contagem: Loja & Estoque -->
-          <div class="count-zones-container">
-            <!-- Zona Frente de Loja -->
-            <div class="count-zone zone-loja">
-              <div class="zone-header">
-                <span class="zone-title zone-title-loja">Loja (Gôndola)</span>
-              </div>
-              <div class="zone-counter-row">
-                <button type="button" class="btn-count-adjust" onclick="app.adjustCount('${p.id}', 'loja', -1)" title="Diminuir 1">-1</button>
-                <input type="number" class="count-qty-input" value="${qLoja}" min="0" 
-                  onchange="app.setCountDirect('${p.id}', 'loja', this.value)" 
-                  aria-label="Quantidade na Loja">
-                <button type="button" class="btn-count-adjust" onclick="app.adjustCount('${p.id}', 'loja', 1)" title="Adicionar 1">+1</button>
-              </div>
-              <div class="zone-quick-add">
-                <button type="button" class="btn-quick-add" onclick="app.adjustCount('${p.id}', 'loja', 5)">+5</button>
-                <button type="button" class="btn-quick-add" onclick="app.adjustCount('${p.id}', 'loja', 10)">+10</button>
-              </div>
-            </div>
-
-            <!-- Zona Depósito / Estoque -->
-            <div class="count-zone zone-estoque">
-              <div class="zone-header">
-                <span class="zone-title zone-title-estoque">Estoque (Depósito)</span>
-              </div>
-              <div class="zone-counter-row">
-                <button type="button" class="btn-count-adjust" onclick="app.adjustCount('${p.id}', 'estoque', -1)" title="Diminuir 1">-1</button>
-                <input type="number" class="count-qty-input" value="${qEstoque}" min="0" 
-                  onchange="app.setCountDirect('${p.id}', 'estoque', this.value)" 
-                  aria-label="Quantidade no Estoque">
-                <button type="button" class="btn-count-adjust" onclick="app.adjustCount('${p.id}', 'estoque', 1)" title="Adicionar 1">+1</button>
-              </div>
-              <div class="zone-quick-add">
-                <button type="button" class="btn-quick-add" onclick="app.adjustCount('${p.id}', 'estoque', 5)">+5</button>
-                <button type="button" class="btn-quick-add" onclick="app.adjustCount('${p.id}', 'estoque', 10)">+10</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Rodapé do Card -->
-          <div class="count-card-footer">
-            <div class="count-totals-info">
-              <span class="count-total-sum">Total: ${total} un (Mín: ${p.minStock})</span>
-              <span class="count-last-check">${this.formatLastCount(p.lastCountAt)}</span>
-            </div>
-
-            <div class="count-card-actions">
-              <button type="button" class="btn btn-sm btn-outline" onclick="app.openAdjustModal('${p.id}')" title="Ajuste Fino e Estoque Mínimo">
-                ⚙️
-              </button>
-              <button type="button" class="btn-check-item ${p.checkedInCycle ? 'checked' : ''}" 
-                onclick="app.toggleCheckItem('${p.id}')">
-                ${p.checkedInCycle ? '✓ Conferido' : 'Bip / Conferir'}
-              </button>
-            </div>
+          <div style="text-align: right;">
+            <span class="badge-tag ${d.status === 'delayed' ? 'badge-tag-danger' : 'badge-tag-forest'}">${daysLeft}</span>
+            <div style="font-size: 0.68rem; color: var(--color-text-muted); margin-top: 0.15rem;">${this.formatDate(d.expectedDate)}</div>
           </div>
         </div>
       `;
     }).join('');
   }
 
-  // Incrementa ou decrementa a quantidade no modo rápido
-  adjustCount(productId, zone, delta) {
-    const p = this.products.find(item => item.id === productId);
-    if (!p) return;
-
-    if (zone === 'loja') {
-      p.qtyLoja = Math.max(0, (Number(p.qtyLoja) || 0) + delta);
-    } else {
-      p.qtyEstoque = Math.max(0, (Number(p.qtyEstoque) || 0) + delta);
-    }
-
-    p.lastCountAt = new Date().toISOString();
-    p.checkedInCycle = true; // Ao alterar, já marca como conferido
-
-    if (delta > 0) audio.playStepUp();
-    else audio.playStepDown();
-
-    this.checkStockWarning(p);
-    this.saveProducts();
-    this.renderCycleBanner();
-    this.renderCountCards();
-    this.renderStockTable();
-  }
-
-  // Define valor diretamente digitado
-  setCountDirect(productId, zone, val) {
-    const p = this.products.find(item => item.id === productId);
-    if (!p) return;
-
-    const num = Math.max(0, parseInt(val, 10) || 0);
-    if (zone === 'loja') p.qtyLoja = num;
-    else p.qtyEstoque = num;
-
-    p.lastCountAt = new Date().toISOString();
-    p.checkedInCycle = true;
-
-    audio.playStepUp();
-    this.checkStockWarning(p);
-    this.saveProducts();
-    this.renderCycleBanner();
-    this.renderCountCards();
-    this.renderStockTable();
-  }
-
-  // Alterna o status de conferido no ciclo atual
-  toggleCheckItem(productId) {
-    const p = this.products.find(item => item.id === productId);
-    if (!p) return;
-
-    p.checkedInCycle = !p.checkedInCycle;
-    p.lastCountAt = new Date().toISOString();
-
-    if (p.checkedInCycle) {
-      audio.playCheck();
-      this.showToast(`"${p.name}" marcado como conferido!`, 'success');
-    } else {
-      audio.playStepDown();
-    }
-
-    this.saveProducts();
-    this.renderCycleBanner();
-    this.renderCountCards();
-    this.renderStockTable();
-    this.renderReports();
-  }
-
-  formatLastCount(isoDateStr) {
-    if (!isoDateStr) return 'Nunca conferido';
-    const date = new Date(isoDateStr);
-    const now = new Date();
-    const diffHours = Math.round((now - date) / (1000 * 60 * 60));
-
-    if (diffHours < 1) return 'Conferido há poucos minutos';
-    if (diffHours === 1) return 'Conferido há 1 hora';
-    if (diffHours < 24) return `Conferido há ${diffHours} horas`;
-    const days = Math.round(diffHours / 24);
-    return `Conferido há ${days} dia(s)`;
-  }
-
   // ==========================================================================
-  // ABA 2: LOJA & ESTOQUE (TABELA COMPLETA)
+  // SEÇÃO 2: GESTÃO DE PRODUTOS & VOLUMES (TABELA OPERACIONAL)
   // ==========================================================================
 
   renderStockTable() {
-    const tbody = document.getElementById('inventoryTableBody');
+    const tbody = document.getElementById('stockTableBody');
     if (!tbody) return;
 
-    let filtered = this.products.filter(p => {
-      // Busca
-      if (this.stockSearchTerm) {
-        const term = this.stockSearchTerm;
-        const matchName = p.name.toLowerCase().includes(term);
-        const matchSku = (p.sku || '').toLowerCase().includes(term);
-        const matchSupp = (p.supplier || '').toLowerCase().includes(term);
-        if (!matchName && !matchSku && !matchSupp) return false;
+    let items = [...this.products];
+
+    // Filtro por texto
+    if (this.stockFilterSearch) {
+      const q = this.stockFilterSearch;
+      items = items.filter(p => 
+        p.name.toLowerCase().includes(q) ||
+        (p.sku || '').toLowerCase().includes(q) ||
+        (p.supplier || '').toLowerCase().includes(q) ||
+        (p.brand || '').toLowerCase().includes(q)
+      );
+    }
+
+    // Filtro por Categoria
+    if (this.stockFilterCategory) {
+      items = items.filter(p => p.category === this.stockFilterCategory);
+    }
+
+    // Filtro por Situação de Estoque
+    if (this.stockFilterStatus) {
+      items = items.filter(p => {
+        const total = (Number(p.qtyLoja) || 0) + (Number(p.qtyEstoque) || 0);
+        const min = Number(p.minStock) || 0;
+        if (this.stockFilterStatus === 'healthy') return total > min;
+        if (this.stockFilterStatus === 'low') return total <= min && total > Math.ceil(min / 2);
+        if (this.stockFilterStatus === 'critical') return total <= Math.ceil(min / 2) && total > 0;
+        if (this.stockFilterStatus === 'zero') return total === 0;
+        return true;
+      });
+    }
+
+    // Ordenação
+    items.sort((a, b) => {
+      const totA = (Number(a.qtyLoja) || 0) + (Number(a.qtyEstoque) || 0);
+      const totB = (Number(b.qtyLoja) || 0) + (Number(b.qtyEstoque) || 0);
+      const minA = Number(a.minStock) || 0;
+      const minB = Number(b.minStock) || 0;
+
+      if (this.stockSortBy === 'name_asc') return a.name.localeCompare(b.name);
+      if (this.stockSortBy === 'total_asc') return totA - totB;
+      if (this.stockSortBy === 'total_desc') return totB - totA;
+      if (this.stockSortBy === 'last_count') return new Date(b.lastCountAt || 0) - new Date(a.lastCountAt || 0);
+      if (this.stockSortBy === 'status_urgency') {
+        const critA = totA <= Math.ceil(minA / 2) ? 2 : totA <= minA ? 1 : 0;
+        const critB = totB <= Math.ceil(minB / 2) ? 2 : totB <= minB ? 1 : 0;
+        return critB - critA;
       }
-
-      // Categoria
-      if (this.stockCategory && p.category !== this.stockCategory) {
-        return false;
-      }
-
-      // Status
-      const qLoja = Number(p.qtyLoja) || 0;
-      const qEstoque = Number(p.qtyEstoque) || 0;
-      const total = qLoja + qEstoque;
-      const minStock = Number(p.minStock) || 0;
-
-      if (this.stockStatusFilter === 'normal' && total <= minStock) return false;
-      if (this.stockStatusFilter === 'low' && (total > minStock || total === 0)) return false;
-      if (this.stockStatusFilter === 'critical' && total > Math.ceil(minStock / 2)) return false;
-      if (this.stockStatusFilter === 'transfer' && (qLoja > 2 || qEstoque === 0)) return false;
-
-      return true;
+      return 0;
     });
 
-    if (filtered.length === 0) {
+    if (items.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="9" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
-            Nenhuma mercadoria corresponde aos filtros selecionados.
+          <td colspan="9" style="text-align: center; padding: 2.5rem; color: var(--color-text-secondary);">
+            Nenhum produto corresponde aos filtros informados.
           </td>
         </tr>
       `;
       return;
     }
 
-    tbody.innerHTML = filtered.map(p => {
+    tbody.innerHTML = items.map(p => {
       const qLoja = Number(p.qtyLoja) || 0;
       const qEstoque = Number(p.qtyEstoque) || 0;
       const total = qLoja + qEstoque;
-      const minStock = Number(p.minStock) || 0;
+      const min = Number(p.minStock) || 0;
 
-      // Status do estoque
-      let statusBadge = '<span class="badge-tag" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">Normal</span>';
+      let statusBadge = '<span class="badge-tag badge-tag-healthy">🟢 Saudável</span>';
       if (total === 0) {
-        statusBadge = '<span class="badge-tag badge-tag-critical">Esgotado</span>';
-      } else if (total <= Math.ceil(minStock / 2)) {
-        statusBadge = '<span class="badge-tag badge-tag-critical">Crítico</span>';
-      } else if (total <= minStock) {
-        statusBadge = '<span class="badge-tag badge-tag-divergent">Abaixo do Mín.</span>';
-      }
-
-      // Previsão de entrega vinculada
-      const activeDelivery = this.deliveries.find(d => d.productId === p.id && d.status === 'in_transit');
-      let deliveryCol = '<span class="delivery-none">Sem pedido</span>';
-      if (activeDelivery) {
-        const daysLeft = this.calculateDaysLeft(activeDelivery.expectedDate);
-        deliveryCol = `
-          <div class="delivery-eta-badge" title="Chegada prevista para ${this.formatDate(activeDelivery.expectedDate)}">
-            📦 +${activeDelivery.quantity} un (${daysLeft})
-          </div>
-        `;
+        statusBadge = '<span class="badge-tag badge-tag-danger">⚫ Zerado</span>';
+      } else if (total <= Math.ceil(min / 2)) {
+        statusBadge = '<span class="badge-tag badge-tag-danger">🔴 Crítico</span>';
+      } else if (total <= min) {
+        statusBadge = '<span class="badge-tag badge-tag-warning">🟡 Abaixo do Mín.</span>';
       }
 
       return `
         <tr>
           <td>
-            <div class="prod-cell">
-              <span class="prod-cell-name">${p.name}</span>
-              <span class="prod-cell-meta">${p.brand || ''} • SKU: ${p.sku || '--'}</span>
+            <div class="product-meta-cell">
+              <span class="prod-main-name">${p.name}</span>
+              <span class="prod-sub-meta">${p.brand || ''} • SKU: ${p.sku || '--'}</span>
             </div>
           </td>
-          <td><span style="font-size: 0.8rem; color: var(--text-secondary);">${p.category}</span></td>
-          <td class="td-center"><span class="qty-badge qty-loja">${qLoja}</span></td>
-          <td class="td-center"><span class="qty-badge qty-estoque">${qEstoque}</span></td>
-          <td class="td-center">
-            <span class="qty-badge ${total <= minStock ? 'qty-total-danger' : 'qty-total'}">${total}</span>
+          <td><span style="font-size: 0.8rem; color: var(--color-text-secondary);">${p.category}</span></td>
+          <td class="td-num"><span class="vol-badge vol-loja">${qLoja}</span></td>
+          <td class="td-num"><span class="vol-badge vol-deposito">${qEstoque}</span></td>
+          <td class="td-num">
+            <span class="vol-badge ${total <= min ? 'vol-total-danger' : 'vol-total-healthy'}">${total}</span>
           </td>
-          <td class="td-center" style="font-family: var(--font-mono); color: var(--text-muted);">${minStock}</td>
+          <td class="td-num font-mono text-muted">${min}</td>
           <td>${statusBadge}</td>
-          <td>${deliveryCol}</td>
+          <td style="font-size: 0.78rem; color: var(--color-text-secondary);">${this.formatLastCount(p.lastCountAt)}</td>
           <td class="td-actions">
-            <button class="btn btn-sm btn-outline" onclick="app.openTransferModal('${p.id}')" title="Transferir do Depósito para a Loja">
-              Repor Loja
+            <button class="btn btn-xs btn-outline" onclick="app.openTransferModal('${p.id}')" title="Transferência de saldo entre Loja e Depósito">
+              Transferir
             </button>
-            <button class="btn btn-sm btn-outline" onclick="app.openAdjustModal('${p.id}')" title="Regular Quantidades e Estoque Mínimo">
-              Regular
+            <button class="btn btn-xs btn-outline" onclick="app.openAdjustModal('${p.id}')" title="Ajuste fino de saldo físico e estoque mínimo">
+              Ajustar
             </button>
-            <button class="btn btn-sm btn-ghost" onclick="app.openProductModal('${p.id}')" title="Editar Cadastro">
+            <button class="btn btn-xs btn-ghost" onclick="app.openProductModal('${p.id}')" title="Editar dados cadastrais">
               ✏️
             </button>
           </td>
@@ -1189,299 +1368,239 @@ class PetPianoApp {
   }
 
   // ==========================================================================
-  // ABA 3: ALERTAS DE RUPTURA & NOTIFICAÇÕES
+  // SEÇÃO 3: CONTAGEM EXPRESSA (CICLO DE 48 HORAS)
   // ==========================================================================
 
-  renderAlerts() {
-    const container = document.getElementById('alertsContainer');
-    const bannerTitle = document.getElementById('alertsBannerTitle');
-    const bannerDesc = document.getElementById('alertsBannerDesc');
+  renderCountCards() {
+    const container = document.getElementById('countCardsContainer');
+    const emptyState = document.getElementById('countEmptyState');
     if (!container) return;
 
-    const criticalItems = this.products.filter(p => {
-      const total = (Number(p.qtyLoja) || 0) + (Number(p.qtyEstoque) || 0);
-      return total <= (Number(p.minStock) || 0);
-    });
+    let items = [...this.products];
 
-    if (bannerTitle) {
-      bannerTitle.textContent = `${criticalItems.length} item(ns) prestes a acabar no PetPiano`;
+    // Filtro por busca
+    if (this.countSearchTerm) {
+      const q = this.countSearchTerm;
+      items = items.filter(p => 
+        p.name.toLowerCase().includes(q) ||
+        (p.sku || '').toLowerCase().includes(q) ||
+        (p.brand || '').toLowerCase().includes(q)
+      );
     }
 
-    if (bannerDesc) {
-      bannerDesc.textContent = criticalItems.length > 0
-        ? 'Estes produtos atingiram ou estão abaixo do estoque mínimo configurado. Recomendamos emitir pedido de reposição aos fornecedores.'
-        : 'Excelente! Todos os produtos estão com níveis de estoque acima da margem de segurança configurada.';
+    // Filtro por Categoria
+    if (this.countCategory) {
+      items = items.filter(p => p.category === this.countCategory);
     }
 
-    if (criticalItems.length === 0) {
-      container.innerHTML = `
-        <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
-          <div style="font-size: 3rem; margin-bottom: 0.5rem;">🎉</div>
-          <h3 style="color: #10b981; font-size: 1.25rem;">Nenhum alerta de ruptura no momento!</h3>
-          <p style="color: var(--text-secondary); max-width: 450px; margin: 0.5rem auto 0 auto;">
-            O estoque físico na loja e no depósito está totalmente suprido conforme os estoques mínimos cadastrados.
-          </p>
-        </div>
-      `;
+    // Filtros de status do ciclo
+    if (this.countFilter === 'pending') {
+      items = items.filter(p => !p.checkedInCycle);
+    } else if (this.countFilter === 'checked') {
+      items = items.filter(p => p.checkedInCycle);
+    } else if (this.countFilter === 'divergent') {
+      items = items.filter(p => {
+        const cur = (Number(p.qtyLoja) || 0) + (Number(p.qtyEstoque) || 0);
+        return p.checkedInCycle && cur !== p.baselineTotal;
+      });
+    } else if (this.countFilter === 'critical') {
+      items = items.filter(p => {
+        const cur = (Number(p.qtyLoja) || 0) + (Number(p.qtyEstoque) || 0);
+        return cur <= Math.ceil((Number(p.minStock) || 0) / 2) || cur === 0;
+      });
+    }
+
+    if (items.length === 0) {
+      container.innerHTML = '';
+      if (emptyState) emptyState.style.display = 'block';
       return;
     }
 
-    container.innerHTML = criticalItems.map(p => {
+    if (emptyState) emptyState.style.display = 'none';
+
+    container.innerHTML = items.map(p => {
       const qLoja = Number(p.qtyLoja) || 0;
       const qEstoque = Number(p.qtyEstoque) || 0;
       const total = qLoja + qEstoque;
-      const min = Number(p.minStock) || 0;
+      const isDivergent = p.checkedInCycle && total !== p.baselineTotal;
+      const diff = total - p.baselineTotal;
 
-      // Verifica se já tem pedido a caminho
-      const activeDelivery = this.deliveries.find(d => d.productId === p.id && d.status === 'in_transit');
-      let forecastHtml = '';
-
-      if (activeDelivery) {
-        const daysLeft = this.calculateDaysLeft(activeDelivery.expectedDate);
-        forecastHtml = `
-          <div class="alert-forecast-box">
-            <span>📦 Pedido em trânsito: <strong>${activeDelivery.quantity} unidades</strong> com chegada prevista para 
-            <span class="forecast-highlight">${this.formatDate(activeDelivery.expectedDate)} (${daysLeft})</span>.</span>
-          </div>
-        `;
-      } else {
-        const suggestedOrder = Math.max(min * 2 - total, 10);
-        forecastHtml = `
-          <div class="alert-forecast-box" style="border-color: rgba(244, 63, 94, 0.4); background: rgba(244, 63, 94, 0.08);">
-            <span style="color: #fda4af;">🚨 <strong>Sem pedido em aberto!</strong> Prazo médio do fornecedor (${p.supplier || 'Padrão'}): <strong>${p.leadTimeDays || 3} dias</strong>. Sugestão de compra: <strong>${suggestedOrder} un</strong>.</span>
-          </div>
-        `;
-      }
+      let cardClass = 'count-card';
+      if (p.checkedInCycle) cardClass += ' is-checked';
+      if (isDivergent) cardClass += ' is-divergent';
 
       return `
-        <div class="alert-card">
-          <div class="alert-card-header">
+        <div class="${cardClass}">
+          <div class="count-card-header">
             <div>
-              <span class="count-badge-cat">${p.category}</span>
-              <h4 class="alert-prod-name">${p.name}</h4>
-              <span class="prod-cell-meta">Fornecedor: ${p.supplier || 'Não informado'}</span>
-            </div>
-            <span class="alert-status-pill">${total === 0 ? 'Zerado' : 'Estoque Baixo'}</span>
-          </div>
-
-          <div class="alert-stock-breakdown">
-            <div>
-              <span class="breakdown-label">Na Loja</span>
-              <div class="breakdown-val" style="color: var(--accent-loja);">${qLoja}</div>
+              <span class="badge-tag badge-tag-forest">${p.category}</span>
+              <h3 class="count-card-name" style="margin-top: 0.35rem;">${p.name}</h3>
+              <div class="count-card-meta">${p.brand || ''} • SKU: ${p.sku || '--'}</div>
             </div>
             <div>
-              <span class="breakdown-label">No Estoque</span>
-              <div class="breakdown-val" style="color: var(--accent-estoque);">${qEstoque}</div>
-            </div>
-            <div>
-              <span class="breakdown-label">Mín. Alerta</span>
-              <div class="breakdown-val" style="color: var(--danger);">${min}</div>
+              ${p.checkedInCycle 
+                ? '<span class="badge-tag badge-tag-healthy">✓ Conferido</span>' 
+                : '<span class="badge-tag badge-tag-warning">⏳ Pendente</span>'}
             </div>
           </div>
 
-          ${forecastHtml}
+          <div class="count-zones-split">
+            <!-- Zona Frente de Loja -->
+            <div class="count-zone-box">
+              <span class="zone-tag-title">Loja (Gôndola)</span>
+              <div class="zone-counter-stepper">
+                <button type="button" class="btn-count-adjust" onclick="app.adjustCount('${p.id}', 'loja', -1)">-1</button>
+                <input type="number" class="count-qty-input" value="${qLoja}" min="0" onchange="app.setCountDirect('${p.id}', 'loja', this.value)">
+                <button type="button" class="btn-count-adjust" onclick="app.adjustCount('${p.id}', 'loja', 1)">+1</button>
+              </div>
+              <div class="count-quick-row">
+                <button type="button" class="btn-quick-step" onclick="app.adjustCount('${p.id}', 'loja', 5)">+5</button>
+                <button type="button" class="btn-quick-step" onclick="app.adjustCount('${p.id}', 'loja', 10)">+10</button>
+              </div>
+            </div>
 
-          <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
-            <button class="btn btn-sm btn-outline" onclick="app.openAdjustModal('${p.id}')">
-              Regular Quantia
-            </button>
-            ${!activeDelivery ? `
-              <button class="btn btn-sm btn-primary" onclick="app.openNewDeliveryModal('${p.id}')">
-                Criar Pedido Fornecedor
+            <!-- Zona Depósito -->
+            <div class="count-zone-box">
+              <span class="zone-tag-title">Depósito</span>
+              <div class="zone-counter-stepper">
+                <button type="button" class="btn-count-adjust" onclick="app.adjustCount('${p.id}', 'estoque', -1)">-1</button>
+                <input type="number" class="count-qty-input" value="${qEstoque}" min="0" onchange="app.setCountDirect('${p.id}', 'estoque', this.value)">
+                <button type="button" class="btn-count-adjust" onclick="app.adjustCount('${p.id}', 'estoque', 1)">+1</button>
+              </div>
+              <div class="count-quick-row">
+                <button type="button" class="btn-quick-step" onclick="app.adjustCount('${p.id}', 'estoque', 5)">+5</button>
+                <button type="button" class="btn-quick-step" onclick="app.adjustCount('${p.id}', 'estoque', 10)">+10</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="count-card-footer">
+            <div>
+              <div style="font-weight: 700; font-family: var(--font-mono);">
+                Total Físico: ${total} un (Mín: ${p.minStock})
+              </div>
+              ${isDivergent ? `
+                <div class="count-diff-badge">
+                  Divergência: ${diff > 0 ? '+' + diff : diff} un vs início
+                </div>
+              ` : `
+                <div style="color: var(--color-text-secondary); font-size: 0.7rem;">
+                  ${this.formatLastCount(p.lastCountAt)}
+                </div>
+              `}
+            </div>
+
+            <div style="display: flex; gap: 0.35rem;">
+              <button class="btn btn-xs btn-outline" onclick="app.openAdjustModal('${p.id}')" title="Ajustar com justificativa">
+                ⚙️
               </button>
-            ` : `
-              <button class="btn btn-sm btn-outline" onclick="app.receiveDelivery('${activeDelivery.id}')">
-                Dar Entrada no Estoque
+              <button class="btn btn-xs ${p.checkedInCycle ? 'btn-outline' : 'btn-primary'}" onclick="app.toggleCheckItem('${p.id}')">
+                ${p.checkedInCycle ? 'Reabrir' : '✓ Conferir'}
               </button>
-            `}
+            </div>
           </div>
         </div>
       `;
     }).join('');
   }
 
-  // ==========================================================================
-  // ABA 4: PREVISÃO DE ENTREGAS & FORNECEDORES
-  // ==========================================================================
+  adjustCount(productId, zone, delta) {
+    const p = this.products.find(item => item.id === productId);
+    if (!p) return;
 
-  renderDeliveries() {
-    const container = document.getElementById('deliveriesContainer');
-    const suppliersList = document.getElementById('suppliersSummaryList');
-    if (!container) return;
+    const oldTotal = (Number(p.qtyLoja) || 0) + (Number(p.qtyEstoque) || 0);
 
-    if (this.deliveries.length === 0) {
-      container.innerHTML = `
-        <div class="card" style="text-align: center; padding: 2.5rem;">
-          <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🚚</div>
-          <h3>Nenhuma previsão de entrega cadastrada</h3>
-          <p style="color: var(--text-secondary); margin-top: 0.25rem;">
-            Registre novas previsões de pedidos para acompanhar os prazos e fornecedores do PetPiano.
-          </p>
-          <button class="btn btn-primary" style="margin-top: 1rem;" onclick="app.openNewDeliveryModal()">
-            Cadastrar Nova Previsão
-          </button>
-        </div>
-      `;
+    if (zone === 'loja') {
+      p.qtyLoja = Math.max(0, (Number(p.qtyLoja) || 0) + delta);
     } else {
-      container.innerHTML = this.deliveries.map(deliv => {
-        const prod = this.products.find(p => p.id === deliv.productId) || { name: 'Item Removido' };
-        const daysLeft = this.calculateDaysLeft(deliv.expectedDate);
-        const isDelivered = deliv.status === 'delivered';
-
-        return `
-          <div class="delivery-card">
-            <div class="delivery-header">
-              <div>
-                <span class="count-badge-cat">Pedido: ${deliv.orderNumber || 'S/N'}</span>
-                <h3 class="delivery-title">${prod.name}</h3>
-                <span class="prod-cell-meta">Fornecedor: ${deliv.supplier}</span>
-              </div>
-              <span class="delivery-status-tag ${isDelivered ? 'tag-delivered' : 'tag-in-transit'}">
-                ${isDelivered ? '✓ Entregue & Estocado' : '🚚 Em Trânsito'}
-              </span>
-            </div>
-
-            <div class="delivery-grid-details">
-              <div class="delivery-detail-item">
-                <span class="detail-label">Qtd. Encomendada</span>
-                <span class="detail-val">+${deliv.quantity} unidades</span>
-              </div>
-              <div class="delivery-detail-item">
-                <span class="detail-label">Data Prevista</span>
-                <span class="detail-val">${this.formatDate(deliv.expectedDate)}</span>
-              </div>
-              <div class="delivery-detail-item">
-                <span class="detail-label">Previsão</span>
-                <span class="detail-val" style="color: ${isDelivered ? '#10b981' : '#38bdf8'};">${daysLeft}</span>
-              </div>
-            </div>
-
-            <div class="delivery-footer">
-              <span style="font-size: 0.78rem; color: var(--text-muted);">
-                Cadastrado em: ${new Date(deliv.createdAt).toLocaleDateString('pt-BR')}
-              </span>
-
-              <div>
-                ${!isDelivered ? `
-                  <button class="btn btn-sm btn-primary" onclick="app.receiveDelivery('${deliv.id}')">
-                    Confirmar Recebimento (Dar Entrada)
-                  </button>
-                ` : `
-                  <button class="btn btn-sm btn-ghost text-muted" onclick="app.deleteDelivery('${deliv.id}')">
-                    Remover do Histórico
-                  </button>
-                `}
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
+      p.qtyEstoque = Math.max(0, (Number(p.qtyEstoque) || 0) + delta);
     }
 
-    // Resumo de Fornecedores na Sidebar
-    if (suppliersList) {
-      const supplierCounts = {};
-      this.products.forEach(p => {
-        const s = p.supplier || 'Diversos';
-        supplierCounts[s] = (supplierCounts[s] || 0) + 1;
+    const newTotal = (Number(p.qtyLoja) || 0) + (Number(p.qtyEstoque) || 0);
+    p.lastCountAt = new Date().toISOString();
+    p.checkedInCycle = true;
+
+    if (delta > 0) audio.playStepUp();
+    else audio.playStepDown();
+
+    // Se houve divergência no total, registra no histórico
+    if (newTotal !== oldTotal) {
+      this.logMovement({
+        productId: p.id,
+        productName: p.name,
+        type: 'Contagem Física (48h)',
+        quantity: delta,
+        origin: zone === 'loja' ? 'Loja' : 'Depósito',
+        destination: 'Conferência Física',
+        prevOriginQty: oldTotal,
+        newOriginQty: newTotal,
+        notes: `Ajuste rápido de ${delta > 0 ? '+' : ''}${delta} na contagem física`
       });
-
-      suppliersList.innerHTML = Object.entries(supplierCounts).map(([sup, count]) => `
-        <li class="supplier-item">
-          <span>${sup}</span>
-          <span class="tab-pill">${count} itens</span>
-        </li>
-      `).join('');
-    }
-  }
-
-  // Recebe a mercadoria e joga a quantidade diretamente no estoque
-  receiveDelivery(deliveryId) {
-    const deliv = this.deliveries.find(d => d.id === deliveryId);
-    if (!deliv) return;
-
-    const prod = this.products.find(p => p.id === deliv.productId);
-    if (prod) {
-      prod.qtyEstoque = (Number(prod.qtyEstoque) || 0) + Number(deliv.quantity);
-      prod.lastCountAt = new Date().toISOString();
     }
 
-    deliv.status = 'delivered';
-    deliv.deliveredAt = new Date().toISOString();
-
-    audio.playSuccessChord();
+    this.checkStockWarning(p);
     this.saveProducts();
-    this.saveDeliveries();
-    this.renderAll();
-
-    this.showToast(`Mercadoria recebida! +${deliv.quantity} unidades somadas ao Estoque de "${prod ? prod.name : 'Produto'}".`, 'success');
+    this.renderMetricsAndBadges();
+    this.renderCountCards();
+    this.renderStockTable();
   }
 
-  deleteDelivery(deliveryId) {
-    this.deliveries = this.deliveries.filter(d => d.id !== deliveryId);
-    this.saveDeliveries();
-    this.renderDeliveries();
-    this.showToast('Registro de entrega removido.', 'info');
-  }
+  setCountDirect(productId, zone, val) {
+    const p = this.products.find(item => item.id === productId);
+    if (!p) return;
 
-  // ==========================================================================
-  // ABA 5: HISTÓRICO & RELATÓRIOS DO CICLO
-  // ==========================================================================
+    const num = Math.max(0, parseInt(val, 10) || 0);
+    const oldQty = zone === 'loja' ? (Number(p.qtyLoja) || 0) : (Number(p.qtyEstoque) || 0);
 
-  renderReports() {
-    const elStart = document.getElementById('auditCycleStart');
-    const elEnd = document.getElementById('auditCycleEnd');
-    const elChecked = document.getElementById('auditCheckedItems');
-    const elDivergent = document.getElementById('auditDivergentCount');
-    const elAccuracy = document.getElementById('auditAccuracyRate');
-    const historyTbody = document.getElementById('historyTableBody');
+    if (zone === 'loja') p.qtyLoja = num;
+    else p.qtyEstoque = num;
 
-    const totalSkus = this.products.length;
-    const checkedSkus = this.products.filter(p => p.checkedInCycle).length;
-    const divergentItems = this.products.filter(p => {
-      const curTotal = (Number(p.qtyLoja) || 0) + (Number(p.qtyEstoque) || 0);
-      return p.checkedInCycle && curTotal !== p.baselineTotal;
-    });
+    p.lastCountAt = new Date().toISOString();
+    p.checkedInCycle = true;
 
-    const accuracy = checkedSkus > 0 
-      ? Math.round(((checkedSkus - divergentItems.length) / checkedSkus) * 100) 
-      : 100;
+    audio.playStepUp();
 
-    if (this.cycle) {
-      if (elStart) elStart.textContent = new Date(this.cycle.startedAt).toLocaleString('pt-BR');
-      if (elEnd) elEnd.textContent = new Date(this.cycle.expiresAt).toLocaleString('pt-BR');
+    if (num !== oldQty) {
+      this.logMovement({
+        productId: p.id,
+        productName: p.name,
+        type: 'Contagem Física (48h)',
+        quantity: num - oldQty,
+        origin: zone === 'loja' ? 'Loja' : 'Depósito',
+        destination: 'Conferência Direta',
+        prevOriginQty: oldQty,
+        newOriginQty: num,
+        notes: `Conferência digitada diretamente: de ${oldQty} para ${num}`
+      });
     }
 
-    if (elChecked) elChecked.textContent = `${checkedSkus} de ${totalSkus} (${totalSkus > 0 ? Math.round((checkedSkus / totalSkus) * 100) : 0}%)`;
-    if (elDivergent) elDivergent.textContent = `${divergentItems.length} item(ns)`;
-    if (elAccuracy) elAccuracy.textContent = `${accuracy}%`;
-
-    // Histórico de ciclos passados
-    if (historyTbody) {
-      if (this.cycleHistory.length === 0) {
-        historyTbody.innerHTML = `
-          <tr>
-            <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
-              Nenhum ciclo anterior registrado ainda.
-            </td>
-          </tr>
-        `;
-      } else {
-        historyTbody.innerHTML = this.cycleHistory.map(h => `
-          <tr>
-            <td>${h.completedAt}</td>
-            <td>${h.checkedSkus} / ${h.totalSkus}</td>
-            <td style="color: ${h.divergentCount > 0 ? '#f59e0b' : 'inherit'}; font-weight: 700;">
-              ${h.divergentCount}
-            </td>
-            <td style="color: #10b981; font-weight: 700;">${h.accuracyRate}</td>
-          </tr>
-        `).join('');
-      }
-    }
+    this.checkStockWarning(p);
+    this.saveProducts();
+    this.renderMetricsAndBadges();
+    this.renderCountCards();
+    this.renderStockTable();
   }
 
-  // Modal para fechar ciclo de 2 dias
+  toggleCheckItem(productId) {
+    const p = this.products.find(item => item.id === productId);
+    if (!p) return;
+
+    p.checkedInCycle = !p.checkedInCycle;
+    p.lastCountAt = new Date().toISOString();
+
+    if (p.checkedInCycle) {
+      audio.playCheck();
+      this.showToast(`"${p.name}" conferido na rodada atual!`, 'success');
+    } else {
+      audio.playStepDown();
+    }
+
+    this.saveProducts();
+    this.renderMetricsAndBadges();
+    this.renderCountCards();
+    this.renderStockTable();
+  }
+
   openFinishCycleModal() {
     const dialog = document.getElementById('modalFinishCycle');
     if (!dialog) return;
@@ -1489,8 +1608,8 @@ class PetPianoApp {
     const total = this.products.length;
     const checked = this.products.filter(p => p.checkedInCycle).length;
     const divergent = this.products.filter(p => {
-      const curTotal = (Number(p.qtyLoja) || 0) + (Number(p.qtyEstoque) || 0);
-      return p.checkedInCycle && curTotal !== p.baselineTotal;
+      const cur = (Number(p.qtyLoja) || 0) + (Number(p.qtyEstoque) || 0);
+      return p.checkedInCycle && cur !== p.baselineTotal;
     }).length;
 
     const accuracy = checked > 0 ? Math.round(((checked - divergent) / checked) * 100) : 100;
@@ -1510,12 +1629,12 @@ class PetPianoApp {
     const total = this.products.length;
     const checked = this.products.filter(p => p.checkedInCycle).length;
     const divergent = this.products.filter(p => {
-      const curTotal = (Number(p.qtyLoja) || 0) + (Number(p.qtyEstoque) || 0);
-      return p.checkedInCycle && curTotal !== p.baselineTotal;
+      const cur = (Number(p.qtyLoja) || 0) + (Number(p.qtyEstoque) || 0);
+      return p.checkedInCycle && cur !== p.baselineTotal;
     }).length;
     const accuracy = checked > 0 ? Math.round(((checked - divergent) / checked) * 100) : 100;
 
-    // Registra no histórico
+    // Arquiva no histórico
     this.cycleHistory.unshift({
       id: 'cycle-hist-' + Date.now(),
       completedAt: new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
@@ -1528,104 +1647,318 @@ class PetPianoApp {
     this.saveHistory();
     this.startNewCycle(false);
     audio.playSuccessChord();
-    this.showToast('Ciclo de 48h arquivado no histórico e novo ciclo aberto!', 'success');
+    this.showToast('Ciclo de 48h arquivado no histórico com sucesso!', 'success');
     this.renderAll();
   }
 
   // ==========================================================================
-  // OPERAÇÕES DE PRODUTO & MODAIS DE FORMULÁRIO
+  // SEÇÃO 4: TRANSFERÊNCIA ENTRE LOJA E DEPÓSITO (BIDIRECIONAL & AUDITADA)
   // ==========================================================================
 
-  // Abre Modal de Regular Quantidade
-  openAdjustModal(productId) {
-    const p = this.products.find(item => item.id === productId);
-    if (!p) return;
+  renderTransferView() {
+    const select = document.getElementById('tfProductSelect');
+    if (select) {
+      select.innerHTML = this.products.map(p => `
+        <option value="${p.id}">
+          ${p.name} (Loja: ${p.qtyLoja} un | Depósito: ${p.qtyEstoque} un)
+        </option>
+      `).join('');
+    }
 
-    const dialog = document.getElementById('modalAdjustQuantity');
-    if (!dialog) return;
-
-    document.getElementById('adjustProductId').value = p.id;
-    document.getElementById('adjustModalTitle').textContent = `Regular: ${p.name}`;
-    document.getElementById('adjustModalSubtitle').textContent = `Categoria: ${p.category} | SKU: ${p.sku || '--'}`;
-
-    document.getElementById('adjustCurrentLoja').textContent = p.qtyLoja;
-    document.getElementById('adjustCurrentEstoque').textContent = p.qtyEstoque;
-
-    document.getElementById('adjustInputLoja').value = p.qtyLoja;
-    document.getElementById('adjustInputEstoque').value = p.qtyEstoque;
-    document.getElementById('adjustMinStock').value = p.minStock;
-
-    dialog.showModal();
+    this.updateTransferPreview();
+    this.renderRepositionSuggestions();
   }
 
-  saveQuantityAdjustment() {
-    const id = document.getElementById('adjustProductId').value;
-    const p = this.products.find(item => item.id === id);
+  updateTransferPreview() {
+    const prodId = document.getElementById('tfProductSelect')?.value;
+    const dir = document.getElementById('tfDirection')?.value;
+    const qtyInput = document.getElementById('tfQuantity');
+    const qty = Math.max(1, parseInt(qtyInput?.value, 10) || 1);
+
+    const p = this.products.find(item => item.id === prodId);
     if (!p) return;
 
-    const newLoja = Math.max(0, parseInt(document.getElementById('adjustInputLoja').value, 10) || 0);
-    const newEstoque = Math.max(0, parseInt(document.getElementById('adjustInputEstoque').value, 10) || 0);
-    const newMin = Math.max(1, parseInt(document.getElementById('adjustMinStock').value, 10) || 1);
-    const reason = document.getElementById('adjustReason').value;
+    const originName = document.getElementById('tfOriginName');
+    const destName = document.getElementById('tfDestName');
+    const originBefore = document.getElementById('tfOriginBefore');
+    const originAfter = document.getElementById('tfOriginAfter');
+    const destBefore = document.getElementById('tfDestBefore');
+    const destAfter = document.getElementById('tfDestAfter');
 
-    p.qtyLoja = newLoja;
-    p.qtyEstoque = newEstoque;
-    p.minStock = newMin;
-    p.divergenceReason = reason;
-    p.lastCountAt = new Date().toISOString();
-    p.checkedInCycle = true;
+    if (dir === 'deposito_para_loja') {
+      if (originName) originName.textContent = 'Depósito';
+      if (destName) destName.textContent = 'Frente de Loja';
+      const curOrigin = Number(p.qtyEstoque) || 0;
+      const curDest = Number(p.qtyLoja) || 0;
 
-    const dialog = document.getElementById('modalAdjustQuantity');
-    if (dialog) dialog.close();
+      if (originBefore) originBefore.textContent = curOrigin;
+      if (destBefore) destBefore.textContent = curDest;
 
-    audio.playCheck();
-    this.checkStockWarning(p);
-    this.saveProducts();
-    this.renderAll();
+      const newOrigin = Math.max(0, curOrigin - qty);
+      const newDest = curDest + (curOrigin >= qty ? qty : 0);
 
-    this.showToast(`Quantidades e estoque mínimo de "${p.name}" regularizados!`, 'success');
+      if (originAfter) originAfter.textContent = newOrigin;
+      if (destAfter) destAfter.textContent = newDest;
+    } else {
+      if (originName) originName.textContent = 'Frente de Loja';
+      if (destName) destName.textContent = 'Depósito';
+      const curOrigin = Number(p.qtyLoja) || 0;
+      const curDest = Number(p.qtyEstoque) || 0;
+
+      if (originBefore) originBefore.textContent = curOrigin;
+      if (destBefore) destBefore.textContent = curDest;
+
+      const newOrigin = Math.max(0, curOrigin - qty);
+      const newDest = curDest + (curOrigin >= qty ? qty : 0);
+
+      if (originAfter) originAfter.textContent = newOrigin;
+      if (destAfter) destAfter.textContent = newDest;
+    }
   }
 
-  // Modal de Transferência Estoque -> Loja
-  openTransferModal(productId) {
-    const p = this.products.find(item => item.id === productId);
-    if (!p) return;
-
-    const dialog = document.getElementById('modalTransferStock');
-    if (!dialog) return;
-
-    document.getElementById('transferProductId').value = p.id;
-    document.getElementById('transferModalTitle').textContent = `Transferir para Loja: ${p.name}`;
-    document.getElementById('transferEstoqueAvailable').textContent = `${p.qtyEstoque} un no depósito`;
-    document.getElementById('transferLojaCurrent').textContent = `${p.qtyLoja} un na loja`;
-    document.getElementById('transferMaxHint').textContent = `Máximo transferível: ${p.qtyEstoque} unidades`;
-
-    const inputQty = document.getElementById('transferQuantityInput');
-    inputQty.max = p.qtyEstoque;
-    inputQty.value = Math.min(p.qtyEstoque, 5);
-
-    dialog.showModal();
+  stepTransferInput(step) {
+    const input = document.getElementById('tfQuantity');
+    if (!input) return;
+    const cur = parseInt(input.value, 10) || 1;
+    input.value = Math.max(1, cur + step);
+    this.updateTransferPreview();
   }
 
-  saveTransferStock() {
-    const id = document.getElementById('transferProductId').value;
-    const p = this.products.find(item => item.id === id);
+  saveDirectTransfer() {
+    const prodId = document.getElementById('tfProductSelect')?.value;
+    const dir = document.getElementById('tfDirection')?.value;
+    const qty = parseInt(document.getElementById('tfQuantity')?.value, 10) || 0;
+    const notes = document.getElementById('tfNotes')?.value.trim();
+
+    const p = this.products.find(item => item.id === prodId);
     if (!p) return;
 
-    const transferQty = parseInt(document.getElementById('transferQuantityInput').value, 10) || 0;
-    if (transferQty <= 0) {
+    if (qty <= 0) {
       alert('Informe uma quantidade maior que zero.');
       return;
     }
 
-    if (transferQty > p.qtyEstoque) {
-      alert(`Quantidade informada (${transferQty}) é maior que o saldo em depósito (${p.qtyEstoque}).`);
+    if (dir === 'deposito_para_loja') {
+      if (qty > p.qtyEstoque) {
+        alert(`Saldo insuficiente no Depósito (${p.qtyEstoque} un disponíveis).`);
+        return;
+      }
+
+      const prevOrigin = p.qtyEstoque;
+      const prevDest = p.qtyLoja;
+
+      p.qtyEstoque -= qty;
+      p.qtyLoja += qty;
+      p.lastCountAt = new Date().toISOString();
+
+      this.logMovement({
+        productId: p.id,
+        productName: p.name,
+        type: 'Transferência (Depósito ➡️ Loja)',
+        quantity: qty,
+        origin: 'Depósito (Estoque)',
+        destination: 'Frente de Loja',
+        prevOriginQty: prevOrigin,
+        newOriginQty: p.qtyEstoque,
+        prevDestQty: prevDest,
+        newDestQty: p.qtyLoja,
+        notes: notes || 'Reposição de gôndola'
+      });
+    } else {
+      if (qty > p.qtyLoja) {
+        alert(`Saldo insuficiente na Loja (${p.qtyLoja} un disponíveis).`);
+        return;
+      }
+
+      const prevOrigin = p.qtyLoja;
+      const prevDest = p.qtyEstoque;
+
+      p.qtyLoja -= qty;
+      p.qtyEstoque += qty;
+      p.lastCountAt = new Date().toISOString();
+
+      this.logMovement({
+        productId: p.id,
+        productName: p.name,
+        type: 'Transferência (Loja ➡️ Depósito)',
+        quantity: qty,
+        origin: 'Frente de Loja',
+        destination: 'Depósito (Estoque)',
+        prevOriginQty: prevOrigin,
+        newOriginQty: p.qtyLoja,
+        prevDestQty: prevDest,
+        newDestQty: p.qtyEstoque,
+        notes: notes || 'Recolhimento para retaguarda'
+      });
+    }
+
+    audio.playSuccessChord();
+    this.saveProducts();
+    this.renderAll();
+    this.showToast(`${qty} unidade(s) de "${p.name}" transferidas com sucesso!`, 'success');
+
+    // Reseta form
+    document.getElementById('tfQuantity').value = 1;
+    document.getElementById('tfNotes').value = '';
+    this.updateTransferPreview();
+  }
+
+  // Sugestões de Reposição Imediata
+  renderRepositionSuggestions() {
+    const container = document.getElementById('repositionSuggestionsList');
+    if (!container) return;
+
+    // Produtos com gôndola baixa (<= 2) mas que têm estoque no depósito
+    const suggestions = this.products.filter(p => p.qtyLoja <= 2 && p.qtyEstoque > 0);
+
+    if (suggestions.length === 0) {
+      container.innerHTML = `<div class="text-secondary" style="font-size: 0.82rem; padding: 1rem; text-align: center;">Nenhuma gôndola necessitando de transferência emergencial.</div>`;
       return;
     }
 
-    p.qtyEstoque -= transferQty;
-    p.qtyLoja += transferQty;
+    container.innerHTML = suggestions.map(p => {
+      const suggestQty = Math.min(p.qtyEstoque, 5);
+      return `
+        <div class="reposition-item-card">
+          <div>
+            <div style="font-weight: 700; font-size: 0.85rem;">${p.name}</div>
+            <div style="font-size: 0.72rem; color: var(--color-text-secondary);">
+              Loja: <strong class="text-danger">${p.qtyLoja} un</strong> | Depósito: <strong class="text-forest">${p.qtyEstoque} un</strong>
+            </div>
+          </div>
+          <button class="btn btn-xs btn-primary" onclick="app.quickReposition('${p.id}', ${suggestQty})">
+            Repor ${suggestQty} un
+          </button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  quickReposition(productId, quantity) {
+    const p = this.products.find(item => item.id === productId);
+    if (!p || p.qtyEstoque < quantity) return;
+
+    const prevOrigin = p.qtyEstoque;
+    const prevDest = p.qtyLoja;
+
+    p.qtyEstoque -= quantity;
+    p.qtyLoja += quantity;
     p.lastCountAt = new Date().toISOString();
+
+    this.logMovement({
+      productId: p.id,
+      productName: p.name,
+      type: 'Transferência Rápida (Depósito ➡️ Loja)',
+      quantity,
+      origin: 'Depósito (Estoque)',
+      destination: 'Frente de Loja',
+      prevOriginQty: prevOrigin,
+      newOriginQty: p.qtyEstoque,
+      prevDestQty: prevDest,
+      newDestQty: p.qtyLoja,
+      notes: 'Reposição rápida de gôndola zerada'
+    });
+
+    audio.playSuccessChord();
+    this.saveProducts();
+    this.renderAll();
+    this.showToast(`+${quantity} un de "${p.name}" repostas na gôndola!`, 'success');
+  }
+
+  // Modal de Transferência dedicado
+  openTransferModal(productId = null) {
+    const dialog = document.getElementById('modalTransferStock');
+    if (!dialog) return;
+
+    const targetProduct = productId ? this.products.find(p => p.id === productId) : this.products[0];
+    if (!targetProduct) return;
+
+    document.getElementById('modalTfProductId').value = targetProduct.id;
+    document.getElementById('transferModalTitle').textContent = `Transferir: ${targetProduct.name}`;
+    document.getElementById('transferModalSubtitle').textContent = `Código: ${targetProduct.sku || '--'} | Categoria: ${targetProduct.category}`;
+
+    document.getElementById('modalTfQuantity').value = Math.min(targetProduct.qtyEstoque > 0 ? targetProduct.qtyEstoque : 1, 5);
+
+    this.updateModalTransferPreview();
+    dialog.showModal();
+  }
+
+  updateModalTransferPreview() {
+    const prodId = document.getElementById('modalTfProductId')?.value;
+    const p = this.products.find(item => item.id === prodId);
+    if (!p) return;
+
+    const dir = document.getElementById('modalTfDirection')?.value;
+    const qty = parseInt(document.getElementById('modalTfQuantity')?.value, 10) || 0;
+
+    const origLabel = document.getElementById('modalTfOriginLabel');
+    const destLabel = document.getElementById('modalTfDestLabel');
+    const origBefore = document.getElementById('modalTfOriginBefore');
+    const origAfter = document.getElementById('modalTfOriginAfter');
+    const destBefore = document.getElementById('modalTfDestBefore');
+    const destAfter = document.getElementById('modalTfDestAfter');
+    const maxHint = document.getElementById('modalTfMaxHint');
+
+    if (dir === 'deposito_para_loja') {
+      if (origLabel) origLabel.textContent = 'Depósito';
+      if (destLabel) destLabel.textContent = 'Loja';
+      if (origBefore) origBefore.textContent = `${p.qtyEstoque} un`;
+      if (destBefore) destBefore.textContent = `${p.qtyLoja} un`;
+      if (origAfter) origAfter.textContent = `${Math.max(0, p.qtyEstoque - qty)} un`;
+      if (destAfter) destAfter.textContent = `${p.qtyLoja + (p.qtyEstoque >= qty ? qty : 0)} un`;
+      if (maxHint) maxHint.textContent = `Máximo no depósito: ${p.qtyEstoque} unidades`;
+    } else {
+      if (origLabel) origLabel.textContent = 'Loja';
+      if (destLabel) destLabel.textContent = 'Depósito';
+      if (origBefore) origBefore.textContent = `${p.qtyLoja} un`;
+      if (destBefore) destBefore.textContent = `${p.qtyEstoque} un`;
+      if (origAfter) origAfter.textContent = `${Math.max(0, p.qtyLoja - qty)} un`;
+      if (destAfter) destAfter.textContent = `${p.qtyEstoque + (p.qtyLoja >= qty ? qty : 0)} un`;
+      if (maxHint) maxHint.textContent = `Máximo na loja: ${p.qtyLoja} unidades`;
+    }
+  }
+
+  saveModalTransfer() {
+    const prodId = document.getElementById('modalTfProductId')?.value;
+    const dir = document.getElementById('modalTfDirection')?.value;
+    const qty = parseInt(document.getElementById('modalTfQuantity')?.value, 10) || 0;
+    const notes = document.getElementById('modalTfNotes')?.value.trim();
+
+    const p = this.products.find(item => item.id === prodId);
+    if (!p) return;
+
+    if (qty <= 0) {
+      alert('Informe uma quantidade maior que zero.');
+      return;
+    }
+
+    if (dir === 'deposito_para_loja') {
+      if (qty > p.qtyEstoque) {
+        alert(`Saldo insuficiente no Depósito (${p.qtyEstoque} un disponíveis).`);
+        return;
+      }
+      p.qtyEstoque -= qty;
+      p.qtyLoja += qty;
+    } else {
+      if (qty > p.qtyLoja) {
+        alert(`Saldo insuficiente na Loja (${p.qtyLoja} un disponíveis).`);
+        return;
+      }
+      p.qtyLoja -= qty;
+      p.qtyEstoque += qty;
+    }
+
+    p.lastCountAt = new Date().toISOString();
+
+    this.logMovement({
+      productId: p.id,
+      productName: p.name,
+      type: dir === 'deposito_para_loja' ? 'Transferência (Depósito ➡️ Loja)' : 'Transferência (Loja ➡️ Depósito)',
+      quantity: qty,
+      origin: dir === 'deposito_para_loja' ? 'Depósito' : 'Loja',
+      destination: dir === 'deposito_para_loja' ? 'Loja' : 'Depósito',
+      notes: notes || 'Transferência realizada via modal'
+    });
 
     const dialog = document.getElementById('modalTransferStock');
     if (dialog) dialog.close();
@@ -1633,102 +1966,198 @@ class PetPianoApp {
     audio.playSuccessChord();
     this.saveProducts();
     this.renderAll();
-
-    this.showToast(`${transferQty} unidades transferidas do Depósito para a Frente de Loja!`, 'success');
+    this.showToast(`Transferência de ${qty} un efetivada com sucesso!`, 'success');
   }
 
-  // Modal de Cadastro/Edição de Produto
-  openProductModal(productId = null) {
-    const dialog = document.getElementById('modalProduct');
-    const form = document.getElementById('formProduct');
-    if (!dialog || !form) return;
+  // ==========================================================================
+  // SEÇÃO 5: ENTREGAS & FORNECEDORES (RECEBIMENTO AUDITADO)
+  // ==========================================================================
 
-    form.reset();
+  renderDeliveries() {
+    const container = document.getElementById('deliveriesCardsContainer');
+    const statsList = document.getElementById('supplierStatsList');
+    if (!container) return;
 
-    if (productId) {
-      const p = this.products.find(item => item.id === productId);
-      if (p) {
-        document.getElementById('productModalTitle').textContent = 'Editar Mercadoria';
-        document.getElementById('prodEditId').value = p.id;
-        document.getElementById('prodName').value = p.name;
-        document.getElementById('prodCategory').value = p.category;
-        document.getElementById('prodSku').value = p.sku || '';
-        document.getElementById('prodBrand').value = p.brand || '';
-        document.getElementById('prodSupplier').value = p.supplier || '';
-        document.getElementById('prodQtyLoja').value = p.qtyLoja;
-        document.getElementById('prodQtyEstoque').value = p.qtyEstoque;
-        document.getElementById('prodMinStock').value = p.minStock;
-        document.getElementById('prodDeliveryDays').value = p.leadTimeDays || 3;
-        document.getElementById('prodLocation').value = p.location || '';
-      }
-    } else {
-      document.getElementById('productModalTitle').textContent = 'Cadastrar Novo Item';
-      document.getElementById('prodEditId').value = '';
+    let items = [...this.deliveries];
+
+    if (this.deliveryFilterStatus) {
+      items = items.filter(d => d.status === this.deliveryFilterStatus);
     }
 
-    dialog.showModal();
+    if (items.length === 0) {
+      container.innerHTML = `
+        <div class="card panel-card" style="text-align: center; padding: 2.5rem;">
+          <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🚚</div>
+          <h3 style="font-weight: 800;">Nenhum pedido de compra localizado</h3>
+          <p class="text-secondary" style="font-size: 0.85rem; margin-top: 0.25rem;">Cadastre novas previsões de entrega para acompanhar os prazos dos fornecedores.</p>
+        </div>
+      `;
+    } else {
+      container.innerHTML = items.map(d => {
+        const prod = this.products.find(p => p.id === d.productId) || { name: 'Item Encomendado' };
+        const daysLeft = this.calculateDaysLeft(d.expectedDate);
+        const isDelivered = d.status === 'delivered';
+
+        let statusTag = '<span class="badge-tag badge-tag-forest">Em Trânsito</span>';
+        if (d.status === 'delayed') statusTag = '<span class="badge-tag badge-tag-danger">Atrasado</span>';
+        if (d.status === 'today') statusTag = '<span class="badge-tag badge-tag-warning">Chega Hoje</span>';
+        if (d.status === 'delivered') statusTag = '<span class="badge-tag badge-tag-healthy">Recebido</span>';
+        if (d.status === 'partial') statusTag = '<span class="badge-tag badge-tag-warning">Recebido Parcial</span>';
+
+        return `
+          <div class="delivery-order-card">
+            <div class="delivery-order-top">
+              <div>
+                <span class="deliv-order-sku">Pedido ${d.orderNumber || 'S/N'}</span>
+                <h3 class="deliv-order-prod">${prod.name}</h3>
+                <div style="font-size: 0.75rem; color: var(--color-text-secondary);">Fornecedor: <strong>${d.supplier}</strong></div>
+              </div>
+              <div>${statusTag}</div>
+            </div>
+
+            <div class="delivery-metrics-row">
+              <div class="deliv-stat-item">
+                <span class="deliv-stat-label">Encomendado</span>
+                <span class="deliv-stat-val">+${d.orderedQuantity} un</span>
+              </div>
+              <div class="deliv-stat-item">
+                <span class="deliv-stat-label">Recebido</span>
+                <span class="deliv-stat-val">${isDelivered || d.status === 'partial' ? d.receivedQuantity + ' un' : '--'}</span>
+              </div>
+              <div class="deliv-stat-item">
+                <span class="deliv-stat-label">Data Prevista</span>
+                <span class="deliv-stat-val">${this.formatDate(d.expectedDate)}</span>
+              </div>
+              <div class="deliv-stat-item">
+                <span class="deliv-stat-label">Prazo</span>
+                <span class="deliv-stat-val ${d.status === 'delayed' ? 'text-danger' : 'text-forest'}">${daysLeft}</span>
+              </div>
+            </div>
+
+            <div class="delivery-order-footer">
+              <span style="font-size: 0.72rem; color: var(--color-text-muted);">
+                Emitido em: ${this.formatDate(d.orderDate || d.createdAt)}
+              </span>
+
+              <div>
+                ${!isDelivered ? `
+                  <button class="btn btn-sm btn-primary" onclick="app.openReceiveDeliveryModal('${d.id}')">
+                    Confirmar Recebimento (Dar Entrada)
+                  </button>
+                ` : `
+                  <span class="badge-tag badge-tag-healthy">✓ Saldo creditado no depósito</span>
+                `}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Métricas na Lateral
+    if (statsList) {
+      const supplierCounts = {};
+      this.products.forEach(p => {
+        const s = p.supplier || 'Outros';
+        supplierCounts[s] = (supplierCounts[s] || 0) + 1;
+      });
+
+      statsList.innerHTML = Object.entries(supplierCounts).map(([sup, count]) => `
+        <div class="supplier-stat-row">
+          <span>${sup}</span>
+          <span class="nav-badge">${count} itens</span>
+        </div>
+      `).join('');
+    }
   }
 
-  saveProductForm() {
-    const editId = document.getElementById('prodEditId').value;
-    const name = document.getElementById('prodName').value.trim();
-    const category = document.getElementById('prodCategory').value;
-    const sku = document.getElementById('prodSku').value.trim();
-    const brand = document.getElementById('prodBrand').value.trim();
-    const supplier = document.getElementById('prodSupplier').value.trim();
-    const qtyLoja = Math.max(0, parseInt(document.getElementById('prodQtyLoja').value, 10) || 0);
-    const qtyEstoque = Math.max(0, parseInt(document.getElementById('prodQtyEstoque').value, 10) || 0);
-    const minStock = Math.max(1, parseInt(document.getElementById('prodMinStock').value, 10) || 5);
-    const leadTimeDays = Math.max(1, parseInt(document.getElementById('prodDeliveryDays').value, 10) || 3);
-    const location = document.getElementById('prodLocation').value.trim();
+  // Modal para confirmar recebimento físico de mercadoria
+  openReceiveDeliveryModal(deliveryId) {
+    const d = this.deliveries.find(item => item.id === deliveryId);
+    if (!d) return;
 
-    if (!name) return;
+    const prod = this.products.find(p => p.id === d.productId) || { name: 'Item' };
 
-    if (editId) {
-      // Edição
-      const p = this.products.find(item => item.id === editId);
-      if (p) {
-        p.name = name;
-        p.category = category;
-        p.sku = sku;
-        p.brand = brand;
-        p.supplier = supplier;
-        p.qtyLoja = qtyLoja;
-        p.qtyEstoque = qtyEstoque;
-        p.minStock = minStock;
-        p.leadTimeDays = leadTimeDays;
-        p.location = location;
+    document.getElementById('rcvDeliveryId').value = d.id;
+    document.getElementById('rcvProductName').textContent = prod.name;
+    document.getElementById('rcvSupplier').textContent = d.supplier;
+    document.getElementById('rcvOrderedQty').textContent = `${d.orderedQuantity} unidades`;
+
+    const input = document.getElementById('rcvQuantityInput');
+    input.value = d.orderedQuantity;
+
+    this.updateReceiveDifferenceHint();
+
+    const dialog = document.getElementById('modalReceiveDelivery');
+    if (dialog) dialog.showModal();
+  }
+
+  updateReceiveDifferenceHint() {
+    const delivId = document.getElementById('rcvDeliveryId')?.value;
+    const d = this.deliveries.find(item => item.id === delivId);
+    if (!d) return;
+
+    const rcvQty = parseInt(document.getElementById('rcvQuantityInput')?.value, 10) || 0;
+    const diff = rcvQty - d.orderedQuantity;
+    const hint = document.getElementById('rcvDifferenceHint');
+
+    if (hint) {
+      if (diff === 0) {
+        hint.textContent = 'Entrega 100% integral (sem divergência de pedido).';
+        hint.style.color = 'var(--color-primary)';
+      } else if (diff < 0) {
+        hint.textContent = `Atenção: Entrega parcial (${Math.abs(diff)} un a menos que o pedido).`;
+        hint.style.color = 'var(--color-warning)';
+      } else {
+        hint.textContent = `Entrega excedente (+${diff} un acima do pedido original).`;
+        hint.style.color = 'var(--color-primary)';
       }
-      this.showToast(`"${name}" atualizado com sucesso!`, 'success');
-    } else {
-      // Criação
-      const newProduct = {
-        id: 'prod-' + Date.now(),
-        sku: sku || 'SKU-' + Math.floor(100000 + Math.random() * 900000),
-        name,
-        category,
-        brand,
-        supplier,
-        qtyLoja,
-        qtyEstoque,
-        minStock,
-        leadTimeDays,
-        location,
-        lastCountAt: new Date().toISOString(),
-        checkedInCycle: true,
-        baselineTotal: qtyLoja + qtyEstoque,
-        divergenceReason: ''
-      };
-      this.products.unshift(newProduct);
-      this.showToast(`"${name}" adicionado ao inventário!`, 'success');
+    }
+  }
+
+  confirmReceiveDelivery() {
+    const delivId = document.getElementById('rcvDeliveryId')?.value;
+    const d = this.deliveries.find(item => item.id === delivId);
+    if (!d) return;
+
+    const rcvQty = Math.max(1, parseInt(document.getElementById('rcvQuantityInput')?.value, 10) || 1);
+    const invoice = document.getElementById('rcvInvoiceNumber')?.value.trim();
+
+    const prod = this.products.find(p => p.id === d.productId);
+    if (prod) {
+      const prevEstoque = Number(prod.qtyEstoque) || 0;
+      prod.qtyEstoque = prevEstoque + rcvQty;
+      prod.lastCountAt = new Date().toISOString();
+
+      this.logMovement({
+        productId: prod.id,
+        productName: prod.name,
+        type: 'Entrada por Fornecedor',
+        quantity: rcvQty,
+        origin: `Fornecedor: ${d.supplier} (${d.orderNumber})`,
+        destination: 'Depósito (Estoque)',
+        prevOriginQty: 0,
+        newOriginQty: 0,
+        prevDestQty: prevEstoque,
+        newDestQty: prod.qtyEstoque,
+        notes: invoice ? `Entrada Nota Fiscal ${invoice}` : `Recebimento pedido ${d.orderNumber}`
+      });
     }
 
-    const dialog = document.getElementById('modalProduct');
+    d.receivedQuantity = rcvQty;
+    d.difference = rcvQty - d.orderedQuantity;
+    d.status = (rcvQty < d.orderedQuantity) ? 'partial' : 'delivered';
+    d.deliveredAt = new Date().toISOString();
+
+    const dialog = document.getElementById('modalReceiveDelivery');
     if (dialog) dialog.close();
 
-    audio.playCheck();
+    audio.playSuccessChord();
     this.saveProducts();
+    this.saveDeliveries();
     this.renderAll();
+
+    this.showToast(`Recebimento confirmado! +${rcvQty} unidades creditadas no Depósito de "${prod ? prod.name : 'Produto'}".`, 'success');
   }
 
   // Modal de Nova Entrega
@@ -1739,11 +2168,10 @@ class PetPianoApp {
 
     select.innerHTML = this.products.map(p => `
       <option value="${p.id}" ${p.id === preselectProductId ? 'selected' : ''}>
-        ${p.name} (Atual: ${p.qtyLoja + p.qtyEstoque} un)
+        ${p.name} (Saldo Total Atual: ${p.qtyLoja + p.qtyEstoque} un)
       </option>
     `).join('');
 
-    // Preenche fornecedor padrão com base no produto selecionado
     const selectedProd = this.products.find(p => p.id === (preselectProductId || select.value));
     if (selectedProd) {
       document.getElementById('delivSupplier').value = selectedProd.supplier || 'Distribuidora Principal';
@@ -1758,11 +2186,11 @@ class PetPianoApp {
   }
 
   saveNewDelivery() {
-    const productId = document.getElementById('delivProductId').value;
-    const supplier = document.getElementById('delivSupplier').value.trim();
-    const quantity = Math.max(1, parseInt(document.getElementById('delivQty').value, 10) || 1);
-    const expectedDate = document.getElementById('delivExpectedDate').value;
-    const orderNumber = document.getElementById('delivOrderNum').value.trim();
+    const productId = document.getElementById('delivProductId')?.value;
+    const supplier = document.getElementById('delivSupplier')?.value.trim();
+    const quantity = Math.max(1, parseInt(document.getElementById('delivQty')?.value, 10) || 1);
+    const expectedDate = document.getElementById('delivExpectedDate')?.value;
+    const orderNumber = document.getElementById('delivOrderNum')?.value.trim();
 
     if (!productId || !expectedDate) return;
 
@@ -1771,7 +2199,10 @@ class PetPianoApp {
       productId,
       supplier,
       orderNumber,
-      quantity,
+      orderedQuantity: quantity,
+      receivedQuantity: 0,
+      difference: 0,
+      orderDate: new Date().toISOString().split('T')[0],
       expectedDate,
       status: 'in_transit',
       createdAt: new Date().toISOString()
@@ -1785,14 +2216,386 @@ class PetPianoApp {
     audio.playCheck();
     this.saveDeliveries();
     this.renderDeliveries();
-    this.renderStockTable();
-    this.renderAlerts();
-
-    this.showToast(`Previsão de entrega para ${this.formatDate(expectedDate)} salva com sucesso!`, 'success');
+    this.renderMetricsAndBadges();
+    this.showToast(`Previsão de entrega para ${this.formatDate(expectedDate)} cadastrada!`, 'success');
   }
 
   // ==========================================================================
-  // NOTIFICAÇÕES (BROWSER NOTIFICATIONS & TOASTS)
+  // SEÇÃO 6: PREVENÇÃO DE RUPTURA & ALERTAS
+  // ==========================================================================
+
+  renderAlerts() {
+    const container = document.getElementById('alertsCardsGrid');
+    const title = document.getElementById('alertsTitleDynamic');
+    const desc = document.getElementById('alertsDescDynamic');
+    if (!container) return;
+
+    const criticalItems = this.products.filter(p => {
+      const total = (Number(p.qtyLoja) || 0) + (Number(p.qtyEstoque) || 0);
+      return total <= (Number(p.minStock) || 0);
+    });
+
+    if (title) title.textContent = `${criticalItems.length} produtos em ponto de ressuprimento ou ruptura`;
+    if (desc) desc.textContent = criticalItems.length > 0
+      ? 'Abaixo estão os produtos com saldo total físico inferior ou igual ao estoque mínimo. Acompanhe se já há pedido feito ou emita compra imediata.'
+      : 'Excelente! Todos os itens do catálogo estão com estoque saudável acima da margem de segurança.';
+
+    if (criticalItems.length === 0) {
+      container.innerHTML = `
+        <div class="card panel-card" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">🎉</div>
+          <h3 style="color: var(--color-primary); font-size: 1.25rem; font-weight: 800;">Nenhum produto em risco de falta!</h3>
+          <p class="text-secondary" style="max-width: 480px; margin: 0.5rem auto 0 auto; font-size: 0.85rem;">
+            Todas as gôndolas e depósitos estão abastecidos de acordo com os estoques mínimos configurados.
+          </p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = criticalItems.map(p => {
+      const qLoja = Number(p.qtyLoja) || 0;
+      const qEstoque = Number(p.qtyEstoque) || 0;
+      const total = qLoja + qEstoque;
+      const min = Number(p.minStock) || 0;
+
+      const activeDelivery = this.deliveries.find(d => d.productId === p.id && d.status !== 'delivered');
+      const suggestedOrder = Math.max(min * 2 - total, 10);
+
+      return `
+        <div class="alert-item-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <span class="badge-tag badge-tag-forest">${p.category}</span>
+                <h3 style="font-size: 1.05rem; font-weight: 700; margin-top: 0.25rem;">${p.name}</h3>
+                <div style="font-size: 0.72rem; color: var(--color-text-secondary);">Fornecedor: ${p.supplier || 'Não informado'} • Lead Time: ${p.leadTimeDays || 3} dias</div>
+              </div>
+              <span class="badge-tag ${total === 0 ? 'badge-tag-danger' : 'badge-tag-warning'}">
+                ${total === 0 ? 'Esgotado' : 'Estoque Baixo'}
+              </span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; background-color: var(--color-bg-app); padding: 0.75rem; border-radius: var(--radius-sm); margin: 0.85rem 0; text-align: center;">
+              <div>
+                <span style="font-size: 0.68rem; color: var(--color-text-muted); text-transform: uppercase;">Na Loja</span>
+                <div style="font-weight: 800; font-family: var(--font-mono); color: var(--color-info);">${qLoja} un</div>
+              </div>
+              <div>
+                <span style="font-size: 0.68rem; color: var(--color-text-muted); text-transform: uppercase;">No Depósito</span>
+                <div style="font-weight: 800; font-family: var(--font-mono); color: var(--color-deposit);">${qEstoque} un</div>
+              </div>
+              <div>
+                <span style="font-size: 0.68rem; color: var(--color-text-muted); text-transform: uppercase;">Mínimo Alerta</span>
+                <div style="font-weight: 800; font-family: var(--font-mono); color: var(--color-danger);">${min} un</div>
+              </div>
+            </div>
+
+            ${activeDelivery ? `
+              <div style="padding: 0.65rem 0.85rem; background-color: var(--color-primary-light); border-radius: var(--radius-sm); font-size: 0.78rem; color: var(--color-primary-dark);">
+                📦 Pedido em trânsito: <strong>${activeDelivery.orderedQuantity} un</strong> (Chegada prevista: <strong>${this.formatDate(activeDelivery.expectedDate)}</strong>)
+              </div>
+            ` : `
+              <div style="padding: 0.65rem 0.85rem; background-color: var(--color-danger-bg); border-radius: var(--radius-sm); font-size: 0.78rem; color: var(--color-danger);">
+                🚨 <strong>Sem pedido em aberto!</strong> Sugestão de compra: <strong>${suggestedOrder} unidades</strong> para cobrir a demanda.
+              </div>
+            `}
+          </div>
+
+          <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+            <button class="btn btn-xs btn-outline" onclick="app.openAdjustModal('${p.id}')">
+              Ajustar Saldo
+            </button>
+            ${!activeDelivery ? `
+              <button class="btn btn-xs btn-primary" onclick="app.openNewDeliveryModal('${p.id}')">
+                Criar Pedido de Compra
+              </button>
+            ` : `
+              <button class="btn btn-xs btn-primary" onclick="app.openReceiveDeliveryModal('${activeDelivery.id}')">
+                Dar Entrada no Estoque
+              </button>
+            `}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ==========================================================================
+  // SEÇÃO 7: HISTÓRICO & AUDITORIA
+  // ==========================================================================
+
+  renderAuditTable() {
+    const tbody = document.getElementById('auditMovementsTableBody');
+    const badge = document.getElementById('auditMovementsCountBadge');
+    const cyclesTbody = document.getElementById('auditCyclesTableBody');
+
+    if (badge) badge.textContent = `${this.movements.length} registros`;
+
+    if (tbody) {
+      if (this.movements.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-muted" style="text-align: center; padding: 2rem;">Nenhum registro de movimentação física no histórico.</td></tr>`;
+      } else {
+        tbody.innerHTML = this.movements.map(m => `
+          <tr>
+            <td style="font-size: 0.78rem; font-family: var(--font-mono);">${new Date(m.timestamp).toLocaleDateString('pt-BR')} ${new Date(m.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
+            <td><strong>${m.productName}</strong></td>
+            <td><span class="badge-tag badge-tag-forest">${m.type}</span></td>
+            <td class="td-num font-mono"><strong>${m.quantity > 0 ? '+' : ''}${m.quantity}</strong> un</td>
+            <td><span style="font-size: 0.78rem; color: var(--color-text-secondary);">${m.origin || '--'}</span></td>
+            <td><span style="font-size: 0.78rem; color: var(--color-text-secondary);">${m.destination || '--'}</span></td>
+            <td style="font-size: 0.78rem; color: var(--color-text-muted);">${m.notes || '--'}</td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    if (cyclesTbody) {
+      if (this.cycleHistory.length === 0) {
+        cyclesTbody.innerHTML = `<tr><td colspan="4" class="text-muted" style="text-align: center; padding: 1.5rem;">Nenhum ciclo anterior concluído ainda.</td></tr>`;
+      } else {
+        cyclesTbody.innerHTML = this.cycleHistory.map(h => `
+          <tr>
+            <td><strong>${h.completedAt}</strong></td>
+            <td>${h.checkedSkus} de ${h.totalSkus} itens</td>
+            <td style="color: ${h.divergentCount > 0 ? 'var(--color-warning)' : 'inherit'}; font-weight: 700;">${h.divergentCount}</td>
+            <td style="color: var(--color-primary); font-weight: 800;">${h.accuracyRate}</td>
+          </tr>
+        `).join('');
+      }
+    }
+  }
+
+  // ==========================================================================
+  // SEÇÃO 8: PREPARAÇÃO PARA E-COMMERCE
+  // ==========================================================================
+
+  renderEcommerceCatalog() {
+    const container = document.getElementById('ecomCatalogPreviewGrid');
+    if (!container) return;
+
+    container.innerHTML = this.products.map(p => {
+      const total = (Number(p.qtyLoja) || 0) + (Number(p.qtyEstoque) || 0);
+      const isAvailable = total > 0;
+
+      return `
+        <div class="ecom-preview-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+              <span class="badge-tag badge-tag-forest">${p.category}</span>
+              <span class="badge-tag ${isAvailable ? 'badge-tag-healthy' : 'badge-tag-danger'}">
+                ${isAvailable ? `${total} un em estoque` : 'Esgotado'}
+              </span>
+            </div>
+            <h4 class="ecom-prod-title">${p.name}</h4>
+            <div style="font-size: 0.75rem; color: var(--color-text-secondary); margin-top: 0.2rem;">Marca: ${p.brand || 'PetPiano'}</div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; padding-top: 0.65rem; border-top: 1px solid var(--color-border-subtle);">
+            <div>
+              <span style="font-size: 0.68rem; color: var(--color-text-muted); display: block;">Preço Comercial</span>
+              <div class="ecom-prod-price">R$ ${(Number(p.salePrice) || 49.90).toFixed(2).replace('.', ',')}</div>
+            </div>
+            <button class="btn btn-xs btn-outline" style="pointer-events: none; opacity: 0.85;">
+              Visualizar Vitrine
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ==========================================================================
+  // MODAL DE REGULAR QUANTIDADE & ESTOQUE MÍNIMO
+  // ==========================================================================
+
+  openAdjustModal(productId) {
+    const p = this.products.find(item => item.id === productId);
+    if (!p) return;
+
+    const dialog = document.getElementById('modalAdjustQuantity');
+    if (!dialog) return;
+
+    document.getElementById('adjustProductId').value = p.id;
+    document.getElementById('adjustModalTitle').textContent = `Ajustar Saldo: ${p.name}`;
+    document.getElementById('adjustModalSubtitle').textContent = `Código: ${p.sku || '--'} | Categoria: ${p.category}`;
+
+    document.getElementById('adjustCurrentLoja').textContent = p.qtyLoja;
+    document.getElementById('adjustCurrentEstoque').textContent = p.qtyEstoque;
+
+    document.getElementById('adjustInputLoja').value = p.qtyLoja;
+    document.getElementById('adjustInputEstoque').value = p.qtyEstoque;
+    document.getElementById('adjustMinStock').value = p.minStock;
+
+    dialog.showModal();
+  }
+
+  saveQuantityAdjustment() {
+    const id = document.getElementById('adjustProductId')?.value;
+    const p = this.products.find(item => item.id === id);
+    if (!p) return;
+
+    const newLoja = Math.max(0, parseInt(document.getElementById('adjustInputLoja')?.value, 10) || 0);
+    const newEstoque = Math.max(0, parseInt(document.getElementById('adjustInputEstoque')?.value, 10) || 0);
+    const newMin = Math.max(1, parseInt(document.getElementById('adjustMinStock')?.value, 10) || 1);
+    const reason = document.getElementById('adjustReason')?.value;
+
+    const oldTotal = (Number(p.qtyLoja) || 0) + (Number(p.qtyEstoque) || 0);
+    const newTotal = newLoja + newEstoque;
+
+    p.qtyLoja = newLoja;
+    p.qtyEstoque = newEstoque;
+    p.minStock = newMin;
+    p.divergenceReason = reason;
+    p.lastCountAt = new Date().toISOString();
+    p.checkedInCycle = true;
+
+    // Registra auditoria
+    if (newTotal !== oldTotal) {
+      this.logMovement({
+        productId: p.id,
+        productName: p.name,
+        type: 'Ajuste de Inventário',
+        quantity: newTotal - oldTotal,
+        origin: `Loja (${p.qtyLoja}) / Depósito (${p.qtyEstoque})`,
+        destination: 'Regularização de Saldo',
+        prevOriginQty: oldTotal,
+        newOriginQty: newTotal,
+        notes: reason || 'Ajuste manual de inventário'
+      });
+    }
+
+    const dialog = document.getElementById('modalAdjustQuantity');
+    if (dialog) dialog.close();
+
+    audio.playCheck();
+    this.checkStockWarning(p);
+    this.saveProducts();
+    this.renderAll();
+
+    this.showToast(`Saldos físicos de "${p.name}" atualizados com sucesso!`, 'success');
+  }
+
+  // ==========================================================================
+  // MODAL DE CADASTRAR / EDITAR PRODUTO
+  // ==========================================================================
+
+  openProductModal(productId = null) {
+    const dialog = document.getElementById('modalProduct');
+    const form = document.getElementById('formProduct');
+    if (!dialog || !form) return;
+
+    form.reset();
+
+    if (productId) {
+      const p = this.products.find(item => item.id === productId);
+      if (p) {
+        document.getElementById('productModalTitle').textContent = 'Editar Dados do Produto';
+        document.getElementById('prodEditId').value = p.id;
+        document.getElementById('prodName').value = p.name;
+        document.getElementById('prodCategory').value = p.category;
+        document.getElementById('prodSku').value = p.sku || '';
+        document.getElementById('prodBrand').value = p.brand || '';
+        document.getElementById('prodSupplier').value = p.supplier || '';
+        document.getElementById('prodQtyLoja').value = p.qtyLoja;
+        document.getElementById('prodQtyEstoque').value = p.qtyEstoque;
+        document.getElementById('prodMinStock').value = p.minStock;
+        document.getElementById('prodCostPrice').value = p.costPrice || 0;
+        document.getElementById('prodSalePrice').value = p.salePrice || 0;
+        document.getElementById('prodLeadTime').value = p.leadTimeDays || 3;
+        document.getElementById('prodLocation').value = p.location || '';
+      }
+    } else {
+      document.getElementById('productModalTitle').textContent = 'Cadastrar Novo Item no Estoque';
+      document.getElementById('prodEditId').value = '';
+    }
+
+    dialog.showModal();
+  }
+
+  saveProductForm() {
+    const editId = document.getElementById('prodEditId')?.value;
+    const name = document.getElementById('prodName')?.value.trim();
+    const category = document.getElementById('prodCategory')?.value;
+    const sku = document.getElementById('prodSku')?.value.trim();
+    const brand = document.getElementById('prodBrand')?.value.trim();
+    const supplier = document.getElementById('prodSupplier')?.value.trim();
+    const qtyLoja = Math.max(0, parseInt(document.getElementById('prodQtyLoja')?.value, 10) || 0);
+    const qtyEstoque = Math.max(0, parseInt(document.getElementById('prodQtyEstoque')?.value, 10) || 0);
+    const minStock = Math.max(1, parseInt(document.getElementById('prodMinStock')?.value, 10) || 5);
+    const costPrice = parseFloat(document.getElementById('prodCostPrice')?.value) || 0;
+    const salePrice = parseFloat(document.getElementById('prodSalePrice')?.value) || 0;
+    const leadTimeDays = Math.max(1, parseInt(document.getElementById('prodLeadTime')?.value, 10) || 3);
+    const location = document.getElementById('prodLocation')?.value.trim();
+
+    if (!name) return;
+
+    if (editId) {
+      const p = this.products.find(item => item.id === editId);
+      if (p) {
+        p.name = name;
+        p.category = category;
+        p.sku = sku;
+        p.brand = brand;
+        p.supplier = supplier;
+        p.qtyLoja = qtyLoja;
+        p.qtyEstoque = qtyEstoque;
+        p.minStock = minStock;
+        p.costPrice = costPrice;
+        p.salePrice = salePrice;
+        p.leadTimeDays = leadTimeDays;
+        p.location = location;
+      }
+      this.showToast(`"${name}" atualizado com sucesso!`, 'success');
+    } else {
+      const newProduct = {
+        id: 'prod-' + Date.now(),
+        sku: sku || 'SKU-' + Math.floor(100000 + Math.random() * 900000),
+        name,
+        category,
+        brand,
+        supplier,
+        qtyLoja,
+        qtyEstoque,
+        minStock,
+        costPrice,
+        salePrice,
+        leadTimeDays,
+        location,
+        lastCountAt: new Date().toISOString(),
+        checkedInCycle: true,
+        baselineTotal: qtyLoja + qtyEstoque,
+        divergenceReason: '',
+        statusEcom: 'active'
+      };
+
+      this.products.unshift(newProduct);
+
+      this.logMovement({
+        productId: newProduct.id,
+        productName: newProduct.name,
+        type: 'Cadastro Inicial',
+        quantity: qtyLoja + qtyEstoque,
+        origin: 'Entrada Inicial de Estoque',
+        destination: `Loja (${qtyLoja}) / Depósito (${qtyEstoque})`,
+        prevOriginQty: 0,
+        newOriginQty: qtyLoja + qtyEstoque,
+        notes: 'Cadastro de novo produto'
+      });
+
+      this.showToast(`"${name}" cadastrado com sucesso!`, 'success');
+    }
+
+    const dialog = document.getElementById('modalProduct');
+    if (dialog) dialog.close();
+
+    audio.playCheck();
+    this.saveProducts();
+    this.renderAll();
+  }
+
+  // ==========================================================================
+  // NOTIFICAÇÕES NATIVAS DO SISTEMA
   // ==========================================================================
 
   checkNotificationStatus() {
@@ -1807,8 +2610,8 @@ class PetPianoApp {
       if (notifDot) notifDot.style.display = 'none';
       if (notifBtn) notifBtn.title = 'Notificações de Ruptura Ativadas';
     } else {
-      if (notifDot) notifDot.style.display = 'block';
-      if (notifBtn) notifBtn.title = 'Clique para ativar notificações no seu navegador';
+      if (notifDot) notifDot.style.display = 'inline-block';
+      if (notifBtn) notifBtn.title = 'Clique para ativar notificações no navegador';
     }
   }
 
@@ -1842,14 +2645,13 @@ class PetPianoApp {
     }
   }
 
-  // Verifica se o item caiu abaixo do estoque mínimo para disparar aviso
   checkStockWarning(product) {
     const total = (Number(product.qtyLoja) || 0) + (Number(product.qtyEstoque) || 0);
     const min = Number(product.minStock) || 0;
 
     if (total <= min) {
       audio.playAlertChord();
-      this.showToast(`Atenção: "${product.name}" está prestes a acabar (${total} un / Mínimo: ${min})!`, 'danger');
+      this.showToast(`Atenção: "${product.name}" atingiu o nível crítico (${total} un / Mínimo: ${min})!`, 'danger');
       this.sendSystemNotification(
         '⚠️ Alerta de Estoque: PetPiano',
         `O item "${product.name}" atingiu o nível crítico (${total} un restantes). Considere emitir pedido de reposição.`
@@ -1863,7 +2665,7 @@ class PetPianoApp {
 
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    
+
     let icon = 'ℹ️';
     if (type === 'success') icon = '✅';
     else if (type === 'warning') icon = '⚠️';
@@ -1878,9 +2680,9 @@ class PetPianoApp {
 
     setTimeout(() => {
       toast.style.opacity = '0';
-      toast.style.transform = 'translateX(100%)';
-      toast.style.transition = 'all 0.3s ease';
-      setTimeout(() => toast.remove(), 300);
+      toast.style.transform = 'translateY(10px)';
+      toast.style.transition = 'all 0.25s ease';
+      setTimeout(() => toast.remove(), 250);
     }, 4000);
   }
 
@@ -1888,46 +2690,70 @@ class PetPianoApp {
   // EXPORTAÇÃO CSV
   // ==========================================================================
 
-  exportCSV() {
-    const headers = ['SKU', 'Produto', 'Categoria', 'Marca', 'Fornecedor', 'Qtd_Loja', 'Qtd_Estoque', 'Qtd_Total', 'Estoque_Minimo', 'Status', 'Ultima_Contagem'];
-    
-    const rows = this.products.map(p => {
-      const qLoja = Number(p.qtyLoja) || 0;
-      const qEstoque = Number(p.qtyEstoque) || 0;
-      const total = qLoja + qEstoque;
-      const min = Number(p.minStock) || 0;
-      const status = total <= min ? 'Abaixo do Minimo' : 'Normal';
+  exportCSV(type = 'stock') {
+    if (type === 'stock') {
+      const headers = ['SKU', 'Produto', 'Categoria', 'Marca', 'Fornecedor', 'Qtd_Loja', 'Qtd_Estoque', 'Qtd_Total', 'Estoque_Minimo', 'Preco_Custo', 'Preco_Venda', 'Situacao', 'Ultima_Conferencia'];
+      const rows = this.products.map(p => {
+        const qLoja = Number(p.qtyLoja) || 0;
+        const qEstoque = Number(p.qtyEstoque) || 0;
+        const total = qLoja + qEstoque;
+        const min = Number(p.minStock) || 0;
+        const status = total <= min ? 'Abaixo do Minimo' : 'Saudavel';
 
-      return [
-        `"${p.sku || ''}"`,
-        `"${p.name.replace(/"/g, '""')}"`,
-        `"${p.category}"`,
-        `"${p.brand || ''}"`,
-        `"${p.supplier || ''}"`,
-        qLoja,
-        qEstoque,
-        total,
-        min,
-        `"${status}"`,
-        `"${p.lastCountAt || ''}"`
-      ];
-    });
+        return [
+          `"${p.sku || ''}"`,
+          `"${p.name.replace(/"/g, '""')}"`,
+          `"${p.category}"`,
+          `"${p.brand || ''}"`,
+          `"${p.supplier || ''}"`,
+          qLoja,
+          qEstoque,
+          total,
+          min,
+          p.costPrice || 0,
+          p.salePrice || 0,
+          `"${status}"`,
+          `"${p.lastCountAt || ''}"`
+        ];
+      });
 
-    const csvContent = '\uFEFF' + [headers.join(';'), ...rows.map(r => r.join(';'))].join('\r\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const csvContent = '\uFEFF' + [headers.join(';'), ...rows.map(r => r.join(';'))].join('\r\n');
+      this.downloadBlob(csvContent, `PetPiano_Inventario_${new Date().toISOString().slice(0, 10)}.csv`);
+      this.showToast('Inventário exportado em formato CSV!', 'success');
+    } else {
+      const headers = ['Data_Hora', 'Produto', 'Tipo_Movimentacao', 'Quantidade', 'Origem', 'Destino', 'Motivo_Observacao'];
+      const rows = this.movements.map(m => [
+        `"${m.timestamp}"`,
+        `"${m.productName.replace(/"/g, '""')}"`,
+        `"${m.type}"`,
+        m.quantity,
+        `"${m.origin}"`,
+        `"${m.destination}"`,
+        `"${m.notes.replace(/"/g, '""')}"`
+      ]);
+
+      const csvContent = '\uFEFF' + [headers.join(';'), ...rows.map(r => r.join(';'))].join('\r\n');
+      this.downloadBlob(csvContent, `PetPiano_Auditoria_Movimentacoes_${new Date().toISOString().slice(0, 10)}.csv`);
+      this.showToast('Trilha de auditoria exportada em CSV!', 'success');
+    }
+  }
+
+  downloadBlob(content, filename) {
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `PetPiano_Inventario_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', filename);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-
-    this.showToast('Relatório de inventário CSV exportado!', 'success');
   }
 
-  // Utilitários de Data
+  // ==========================================================================
+  // UTILITÁRIOS
+  // ==========================================================================
+
   calculateDaysLeft(dateStr) {
     if (!dateStr) return 'Sem previsão';
     const target = new Date(dateStr + 'T00:00:00');
@@ -1944,13 +2770,24 @@ class PetPianoApp {
   formatDate(dateStr) {
     if (!dateStr) return '--';
     const parts = dateStr.split('-');
-    if (parts.length === 3) {
-      return `${parts[2]}/${parts[1]}/${parts[0]}`;
-    }
+    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
     return new Date(dateStr).toLocaleDateString('pt-BR');
+  }
+
+  formatLastCount(isoDateStr) {
+    if (!isoDateStr) return 'Nunca conferido';
+    const date = new Date(isoDateStr);
+    const now = new Date();
+    const diffHours = Math.round((now - date) / (1000 * 60 * 60));
+
+    if (diffHours < 1) return 'Há poucos minutos';
+    if (diffHours === 1) return 'Há 1 hora';
+    if (diffHours < 24) return `Há ${diffHours} horas`;
+    const days = Math.round(diffHours / 24);
+    return `Há ${days} dia(s)`;
   }
 }
 
-// Inicializa a aplicação e expõe globalmente para os manipuladores de evento inline
+// Inicializa a aplicação PetPiano
 const app = new PetPianoApp();
 window.app = app;
