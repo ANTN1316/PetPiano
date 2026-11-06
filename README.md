@@ -1,8 +1,7 @@
 # 🎹 PetPiano — Sistema Profissional de Gestão de Estoque & Varejo
 
 <p align="center">
-  <img src="./petpiano_logo.jpg" alt="PetPiano Banner Logo" width="320" style="border-radius: 14px; box-shadow: 0 8px 24px rgba(37,39,34,0.15);">
-</p>
+ 
 
 <p align="center">
   <strong>Sistema operacional de varejo para pet shop com contagem física a cada 48h, separação entre gôndola e depósito, gestão de entregas com validação de recebimento, prevenção de ruptura e arquitetura desacoplada para futuro e-commerce.</strong>
